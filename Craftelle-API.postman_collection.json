@@ -1,0 +1,1933 @@
+{
+  "info": {
+    "name": "Craftelle API",
+    "description": "Complete API collection for the Craftelle backend.\n\nBase URL variable `{{baseUrl}}` defaults to `http://localhost:9090/api/v1`.\nChange it to `https://neurosense-palsy.fly.dev/api/v1` for production.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:9090/api/v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "App",
+      "item": [
+        {
+          "name": "Get Hello",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/"
+          }
+        },
+        {
+          "name": "Test",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/test"
+          }
+        },
+        {
+          "name": "Get CSRF Token",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/csrf-token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"0241234567\",\n  \"password\": \"password123\",\n  \"username\": \"johndoe\",\n  \"type\": \"Customer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Seller",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Seller\",\n  \"email\": \"jane@example.com\",\n  \"phone\": \"0247654321\",\n  \"password\": \"password123\",\n  \"username\": \"janeseller\",\n  \"type\": \"Seller\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Admin",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@example.com\",\n  \"phone\": \"0249876543\",\n  \"password\": \"admin123\",\n  \"username\": \"adminuser\",\n  \"type\": \"Admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Analyst",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Data Analyst\",\n  \"email\": \"analyst@example.com\",\n  \"phone\": \"0241112233\",\n  \"password\": \"password123\",\n  \"username\": \"dataanalyst\",\n  \"type\": \"Analyst\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users/login",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/verify-email/123456/john@example.com"
+          }
+        },
+        {
+          "name": "Send OTP Email",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/send-otp-email/john@example.com"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/users/logout"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/forgot-password/john@example.com"
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Get Users By Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users?type=Customer",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "type", "value": "Customer" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Password or Name",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/users/update-password-or-name",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\",\n  \"name\": \"John Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reactivate Account",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/users/reactivate-account/john@example.com",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adminEmail\": \"admin@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/users/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PIN",
+      "item": [
+        {
+          "name": "Create PIN",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/pin",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"john@example.com\",\n  \"pin\": \"123456\",\n  \"phone\": \"+233241000000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify PIN",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/pin/verify",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"john@example.com\",\n  \"pin\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update PIN",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/pin",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"john@example.com\",\n  \"pin\": \"654321\",\n  \"phone\": \"+233241000000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Check Has PIN",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/pin/john@example.com/has-pin"
+          }
+        },
+        {
+          "name": "Delete PIN",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/pin/john@example.com"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Face Auth",
+      "item": [
+        {
+          "name": "Create Face Auth",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/face-auth",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user123\",\n  \"username\": \"johndoe\",\n  \"faceDescriptor\": [0.1, 0.2, 0.3, 0.4, 0.5],\n  \"role\": \"customer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Face Auth",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/face-auth"
+          }
+        },
+        {
+          "name": "Get All Face Descriptors",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/face-auth/descriptors"
+          }
+        },
+        {
+          "name": "Verify Face",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/face-auth/verify",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descriptor\": [0.1, 0.2, 0.3, 0.4, 0.5]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Face Auth By User",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/face-auth/user123"
+          }
+        },
+        {
+          "name": "Delete Face Auth",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/face-auth/user123"
+          }
+        },
+        {
+          "name": "Face Login (Auth)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descriptor\": [0.1, 0.2, 0.3, 0.4, 0.5]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Facial Recognition",
+      "item": [
+        {
+          "name": "Detect Faces",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/face/detect",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register Face",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/face/register",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "" },
+                { "key": "userId", "value": "user123", "type": "text" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/notifications",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"Customer\",\n  \"message\": \"Your order has been shipped!\",\n  \"scheduledAt\": \"2026-02-10T10:00:00.000Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications"
+          }
+        },
+        {
+          "name": "Get Notifications By Role",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications/role/Customer"
+          }
+        },
+        {
+          "name": "Get Pending Notifications",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications/pending"
+          }
+        },
+        {
+          "name": "Get Notification By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications/NOTIFICATION_ID"
+          }
+        },
+        {
+          "name": "Update Notification",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/notifications/NOTIFICATION_ID",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Updated notification message\",\n  \"scheduledAt\": \"2026-02-15T10:00:00.000Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark As Sent",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/notifications/NOTIFICATION_ID/mark-as-sent"
+          }
+        },
+        {
+          "name": "Mark As Read",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/notifications/NOTIFICATION_ID/mark-as-read"
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/notifications/NOTIFICATION_ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/orders",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Handmade Basket\",\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders"
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/orders/cancel",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Handmade Basket\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments - Stripe",
+      "item": [
+        {
+          "name": "Initiate Stripe Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payments/stripe/initiate",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"currency\": \"usd\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify Stripe Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payments/stripe/verify",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentIntentId\": \"pi_xxx\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Checkout Session",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/stripe/create-checkout-session",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"email\": \"john@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/stripe/payment-intent",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"email\": \"john@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Payment Success",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/stripe/payment-success?session_id=cs_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["stripe", "payment-success"],
+              "query": [
+                { "key": "session_id", "value": "cs_xxx" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payment Cancelled",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/stripe/payment-cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments - Paystack",
+      "item": [
+        {
+          "name": "Initiate Paystack Payment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/paystack/initiate",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"amount\": 5000,\n  \"channels\": [\"card\", \"mobile_money\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify Paystack Payment",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/paystack/verify?reference=ref_xxx",
+              "host": ["{{baseUrl}}"],
+              "path": ["paystack", "verify"],
+              "query": [
+                { "key": "reference", "value": "ref_xxx" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Paystack Transactions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/paystack/transactions?page=1&perPage=10&status=success",
+              "host": ["{{baseUrl}}"],
+              "path": ["paystack", "transactions"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "perPage", "value": "10" },
+                { "key": "status", "value": "success" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Facilities",
+      "item": [
+        {
+          "name": "Create Facility",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/facilities",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"facilityName\": \"Craftelle Workshop\",\n  \"image\": \"https://example.com/image.jpg\",\n  \"email\": \"facility@example.com\",\n  \"phoneNumber\": \"+233241000000\",\n  \"location\": {\n    \"address\": \"123 Main St\",\n    \"city\": \"Accra\",\n    \"region\": \"Greater Accra\"\n  },\n  \"description\": \"A craft workshop\",\n  \"website\": \"https://example.com\",\n  \"establishedYear\": 2020\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Facilities",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/facilities"
+          }
+        },
+        {
+          "name": "Search Facilities",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/facilities/search?q=workshop",
+              "host": ["{{baseUrl}}"],
+              "path": ["facilities", "search"],
+              "query": [
+                { "key": "q", "value": "workshop" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Facility Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/facilities/stats"
+          }
+        },
+        {
+          "name": "Get Facility By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/facilities/id/FACILITY_ID"
+          }
+        },
+        {
+          "name": "Get Facility By Name",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/facilities/Craftelle Workshop"
+          }
+        },
+        {
+          "name": "Update Facility By ID",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/facilities/id/FACILITY_ID",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Facility By Name",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/facilities/Craftelle Workshop",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Facility By ID",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/facilities/id/FACILITY_ID"
+          }
+        },
+        {
+          "name": "Delete Facility By Name",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/facilities/Craftelle Workshop"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Medics",
+      "item": [
+        {
+          "name": "Create Medic",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/medics",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "fullName", "value": "Dr. Smith", "type": "text" },
+                { "key": "specialization", "value": "General Practice", "type": "text" },
+                { "key": "yearsOfPractice", "value": "10", "type": "text" },
+                { "key": "phoneNumber", "value": "+233241000000", "type": "text" },
+                { "key": "consultationFee", "value": "50", "type": "text" },
+                { "key": "hospital", "value": "Korle Bu Hospital", "type": "text" },
+                { "key": "languagesSpoken", "value": "English,Twi", "type": "text" },
+                { "key": "profilePhoto", "type": "file", "src": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Medics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/medics"
+          }
+        },
+        {
+          "name": "Get Medic By ID/Name",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/medics/Dr. Smith"
+          }
+        },
+        {
+          "name": "Search Medics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/medics/search/Smith"
+          }
+        },
+        {
+          "name": "Delete Medic",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/medics/Dr. Smith"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Create Patient",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/patients",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Patient\",\n  \"email\": \"jane@example.com\",\n  \"weeks\": 12\n}"
+            }
+          }
+        },
+        {
+          "name": "Find Patient By Name",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/patients/Jane Patient"
+          }
+        },
+        {
+          "name": "Update Pregnancy Weeks",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/patients/Jane Patient/weeks",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weeks\": 16\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/appointments",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"doctor@example.com\",\n  \"day\": \"2026-02-15\",\n  \"time\": \"10:00\",\n  \"patient_name\": \"Jane Patient\",\n  \"condition\": \"Routine checkup\",\n  \"notes\": \"First visit\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Appointments",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/appointments"
+          }
+        },
+        {
+          "name": "Delete Last Appointment",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/appointments/last"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Get Doctor Appointments",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/doctors/Dr. Smith/appointments?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "Dr. Smith", "appointments"],
+              "query": [
+                { "key": "status", "value": "pending" },
+                { "key": "startDate", "value": "2026-01-01", "disabled": true },
+                { "key": "endDate", "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor Appointment Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/doctors/Dr. Smith/appointments/stats"
+          }
+        },
+        {
+          "name": "Update Appointment Status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/doctors/Dr. Smith/appointments/APPOINTMENT_ID/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Visits",
+      "item": [
+        {
+          "name": "Schedule Visits",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/visits/schedule/Jane Patient",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dates\": [\"2026-02-15\", \"2026-03-01\", \"2026-03-15\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Visits By Patient",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/visits/patient/Jane Patient"
+          }
+        },
+        {
+          "name": "Send Visit Reminders",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/visits/send-reminders"
+          }
+        },
+        {
+          "name": "Get Visits By Date",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/visits/by-date",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-02-15\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prescriptions",
+      "item": [
+        {
+          "name": "Create Prescription",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/prescriptions",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_name\": \"Jane Patient\",\n  \"drug_name\": \"Folic Acid\",\n  \"dosage\": \"5mg\",\n  \"route_of_administration\": \"Oral\",\n  \"frequency\": \"Once daily\",\n  \"duration\": \"30 days\",\n  \"start_date\": \"2026-02-07\",\n  \"end_date\": \"2026-03-09\",\n  \"quantity\": 30,\n  \"reason\": \"Supplement\",\n  \"notes\": \"Take with food\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Prescriptions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/prescriptions"
+          }
+        },
+        {
+          "name": "Delete Last Prescription",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/prescriptions/last"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Create Health Record",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/health",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parity\": 1,\n  \"gravida\": 2,\n  \"gestationalAge\": 24,\n  \"age\": 28,\n  \"hasDiabetes\": \"No\",\n  \"hasAnemia\": \"No\",\n  \"hasPreeclampsia\": \"No\",\n  \"hasGestationalDiabetes\": \"No\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Health Records",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "Update Health Record",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/health/HEALTH_ID",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gestationalAge\": 28\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Health Record",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/health/HEALTH_ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vitals",
+      "item": [
+        {
+          "name": "Create Vital",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/vitals",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"patient123\",\n  \"temperature\": 36.5,\n  \"heartRate\": 80,\n  \"bloodPressure\": \"120/80\",\n  \"oxygenSaturation\": 98\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Vitals",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vitals"
+          }
+        },
+        {
+          "name": "Get Vitals By Patient",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vitals/patient123"
+          }
+        },
+        {
+          "name": "Get Critical Alerts",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vitals/alerts/patient123"
+          }
+        },
+        {
+          "name": "AES Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vitals/health/aes-test"
+          }
+        },
+        {
+          "name": "Test Decryption",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/vitals/test/decrypt",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"encryptedData\": \"encrypted_string_here\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vitals Health Data",
+      "item": [
+        {
+          "name": "Create Vitals Health Data",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/vitals-health-data",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user123\",\n  \"inputMethod\": \"manual\",\n  \"bloodPressure\": {\n    \"systolic\": 120,\n    \"diastolic\": 80\n  },\n  \"heartRate\": 75,\n  \"spO2\": 98,\n  \"bloodGlucose\": 100,\n  \"proteinInUrine\": 0\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Vitals Health Data",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vitals-health-data?userId=user123&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["vitals-health-data"],
+              "query": [
+                { "key": "userId", "value": "user123" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Latest",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vitals-health-data/latest?userId=user123",
+              "host": ["{{baseUrl}}"],
+              "path": ["vitals-health-data", "latest"],
+              "query": [
+                { "key": "userId", "value": "user123" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get By Input Method",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vitals-health-data/method/manual?userId=user123",
+              "host": ["{{baseUrl}}"],
+              "path": ["vitals-health-data", "method", "manual"],
+              "query": [
+                { "key": "userId", "value": "user123" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vitals-health-data/RECORD_ID"
+          }
+        },
+        {
+          "name": "Update Record",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/vitals-health-data/RECORD_ID",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"heartRate\": 80\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Record",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/vitals-health-data/RECORD_ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Heltec Live Vitals",
+      "item": [
+        {
+          "name": "Create Heltec Vitals",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/heltec-live-vitals",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"glucose\": 95,\n  \"systolicBP\": 120,\n  \"diastolicBP\": 80,\n  \"heartRate\": 75,\n  \"spo2\": 98,\n  \"skinTemp\": 32.5,\n  \"bodyTemp\": 36.6,\n  \"accelX\": 0.1,\n  \"accelY\": 0.2,\n  \"accelZ\": 9.8,\n  \"gyroX\": 0.01,\n  \"gyroY\": 0.02,\n  \"gyroZ\": 0.01,\n  \"proteinLevel\": 0.5\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Latest Vitals",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/heltec-live-vitals/latest"
+          }
+        },
+        {
+          "name": "Update Protein Level",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/heltec-live-vitals/latest/protein-level",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proteinLevel\": 1.2\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Vitals",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/heltec-live-vitals"
+          }
+        },
+        {
+          "name": "Temperature Chart",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/heltec-live-vitals/charts/temperature?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["heltec-live-vitals", "charts", "temperature"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Blood Pressure Chart",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/heltec-live-vitals/charts/blood-pressure?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["heltec-live-vitals", "charts", "blood-pressure"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Heart Rate Chart",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/heltec-live-vitals/charts/heart-rate?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["heltec-live-vitals", "charts", "heart-rate"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Oxygen Saturation Chart",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/heltec-live-vitals/charts/oxygen-saturation?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["heltec-live-vitals", "charts", "oxygen-saturation"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Blood Glucose Chart",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/heltec-live-vitals/charts/blood-glucose?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["heltec-live-vitals", "charts", "blood-glucose"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Protein Level Chart",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/heltec-live-vitals/charts/protein-level?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["heltec-live-vitals", "charts", "protein-level"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Comprehensive Charts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/heltec-live-vitals/charts/comprehensive?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["heltec-live-vitals", "charts", "comprehensive"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preeclampsia Vitals",
+      "item": [
+        {
+          "name": "Create Preeclampsia Vitals",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/preeclampsia-vitals",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"patient123\",\n  \"systolicBP\": 140,\n  \"diastolicBP\": 90,\n  \"proteinInUrine\": 300\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/preeclampsia-vitals"
+          }
+        },
+        {
+          "name": "Get By Patient",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/preeclampsia-vitals/patient123"
+          }
+        },
+        {
+          "name": "Update By Patient",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/preeclampsia-vitals/patient123",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"systolicBP\": 130\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete By Patient",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/preeclampsia-vitals/patient123"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Heltec ESP32 Predictions",
+      "item": [
+        {
+          "name": "Create Prediction",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/heltec-esp32-predictions",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"patient123\",\n  \"systolicBP\": 140,\n  \"diastolicBP\": 90,\n  \"proteinInUrine\": 300\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Predictions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/heltec-esp32-predictions"
+          }
+        },
+        {
+          "name": "Get All By Patient",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/heltec-esp32-predictions/patient/patient123/all"
+          }
+        },
+        {
+          "name": "Get Latest By Patient",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/heltec-esp32-predictions/patient/patient123/latest"
+          }
+        },
+        {
+          "name": "Get Earliest By Patient",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/heltec-esp32-predictions/patient/patient123/earliest"
+          }
+        },
+        {
+          "name": "Get By Patient",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/heltec-esp32-predictions/patient/patient123"
+          }
+        },
+        {
+          "name": "Update By Patient",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/heltec-esp32-predictions/patient/patient123",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"systolicBP\": 130\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete By Patient",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/heltec-esp32-predictions/patient/patient123"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chart Data",
+      "item": [
+        {
+          "name": "Create Chart Data",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chart-data",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"temperature\": 36.5,\n  \"heartRate\": 80,\n  \"bloodPressure\": \"120/80\",\n  \"oxygenSaturation\": 98,\n  \"bloodGlucose\": 95\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Chart Data",
+          "request": { "method": "GET", "url": "{{baseUrl}}/chart-data" }
+        },
+        {
+          "name": "Temperature Trend",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/temperature?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "temperature"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Oxygen Saturation",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/oxygen-saturation?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "oxygen-saturation"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Blood Pressure",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/blood-pressure?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "blood-pressure"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Blood Glucose",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/blood-glucose?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "blood-glucose"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Heart Rate",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/heart-rate?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "heart-rate"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Vital Trends",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/vital-trends?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "vital-trends"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Vital Statistics",
+          "request": { "method": "GET", "url": "{{baseUrl}}/chart-data/vital-statistics" }
+        },
+        {
+          "name": "Risk Assessment",
+          "request": { "method": "GET", "url": "{{baseUrl}}/chart-data/risk-assessment" }
+        },
+        {
+          "name": "Movement Analysis",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/movement-analysis?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "movement-analysis"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Protein Trend",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/protein-trend?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "protein-trend"], "query": [{ "key": "days", "value": "7" }] } }
+        },
+        {
+          "name": "Comprehensive Dashboard",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chart-data/comprehensive-dashboard?days=7", "host": ["{{baseUrl}}"], "path": ["chart-data", "comprehensive-dashboard"], "query": [{ "key": "days", "value": "7" }] } }
+        }
+      ]
+    },
+    {
+      "name": "Symptoms",
+      "item": [
+        {
+          "name": "Create Symptom",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/symptoms",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"patient123\",\n  \"username\": \"johndoe\",\n  \"feelingHeadache\": \"Yes\",\n  \"feelingDizziness\": \"No\",\n  \"vomitingAndNausea\": \"Mild\",\n  \"painAtTopOfTommy\": \"No\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Symptoms",
+          "request": { "method": "GET", "url": "{{baseUrl}}/symptoms" }
+        },
+        {
+          "name": "Search Symptoms",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/symptoms/search?patientId=patient123",
+              "host": ["{{baseUrl}}"],
+              "path": ["symptoms", "search"],
+              "query": [{ "key": "patientId", "value": "patient123" }]
+            }
+          }
+        },
+        {
+          "name": "Get Search Stats",
+          "request": { "method": "GET", "url": "{{baseUrl}}/symptoms/search-stats" }
+        }
+      ]
+    },
+    {
+      "name": "Anemia Risk",
+      "item": [
+        {
+          "name": "Predict Risk",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/anaemia-risk/predict",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"patient123\",\n  \"excessiveVomiting\": false,\n  \"diarrhea\": false,\n  \"historyHeavyMenstrualFlow\": true,\n  \"infections\": false,\n  \"chronicDisease\": false,\n  \"familyHistory\": true,\n  \"weight\": 65,\n  \"height\": 165,\n  \"age\": 28,\n  \"shortInterpregnancyInterval\": false,\n  \"multiplePregnancy\": false,\n  \"poverty\": false,\n  \"lackOfAccessHealthcare\": false,\n  \"education\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Statistics",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/anaemia-risk/statistics?patientId=patient123", "host": ["{{baseUrl}}"], "path": ["anaemia-risk", "statistics"], "query": [{ "key": "patientId", "value": "patient123" }] } }
+        },
+        {
+          "name": "Get Raw Statistics",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/anaemia-risk/statistics/raw?patientId=patient123", "host": ["{{baseUrl}}"], "path": ["anaemia-risk", "statistics", "raw"], "query": [{ "key": "patientId", "value": "patient123" }] } }
+        },
+        {
+          "name": "Get All Assessments",
+          "request": { "method": "GET", "url": "{{baseUrl}}/anaemia-risk/assessments" }
+        },
+        {
+          "name": "Get Patient Assessments",
+          "request": { "method": "GET", "url": "{{baseUrl}}/anaemia-risk/assessments/patient/patient123" }
+        },
+        {
+          "name": "Get Latest Assessment",
+          "request": { "method": "GET", "url": "{{baseUrl}}/anaemia-risk/assessments/patient/patient123/latest" }
+        },
+        {
+          "name": "Get Assessment By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/anaemia-risk/assessments/ASSESSMENT_ID" }
+        },
+        {
+          "name": "Delete Assessment",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/anaemia-risk/assessments/ASSESSMENT_ID" }
+        },
+        {
+          "name": "Get Assessment Count",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/anaemia-risk/assessments/count?patientId=patient123", "host": ["{{baseUrl}}"], "path": ["anaemia-risk", "assessments", "count"], "query": [{ "key": "patientId", "value": "patient123" }] } }
+        },
+        {
+          "name": "Statistics Summary",
+          "request": { "method": "GET", "url": "{{baseUrl}}/anaemia-risk/statistics/summary" }
+        },
+        {
+          "name": "Health Check",
+          "request": { "method": "GET", "url": "{{baseUrl}}/anaemia-risk/health" }
+        }
+      ]
+    },
+    {
+      "name": "Health Data (Hardware)",
+      "item": [
+        {
+          "name": "Create Health Data",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/health-data",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_name\": \"Jane Patient\",\n  \"gestational_week\": 24,\n  \"temperature\": 36.5,\n  \"systolic_bp\": 120,\n  \"diastolic_bp\": 80,\n  \"glucose\": 95,\n  \"spo2\": 98,\n  \"heart_rate\": 75,\n  \"bmi\": 24.5,\n  \"preeclampsia_risk\": false,\n  \"anemia_risk\": false,\n  \"gdm_risk\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Health Data",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/health-data?patient=Jane Patient&limit=10", "host": ["{{baseUrl}}"], "path": ["health-data"], "query": [{ "key": "patient", "value": "Jane Patient" }, { "key": "limit", "value": "10" }] } }
+        },
+        {
+          "name": "Get Latest",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/health-data/latest?patient=Jane Patient", "host": ["{{baseUrl}}"], "path": ["health-data", "latest"], "query": [{ "key": "patient", "value": "Jane Patient" }] } }
+        },
+        {
+          "name": "Get Stats",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/health-data/stats?patient=Jane Patient", "host": ["{{baseUrl}}"], "path": ["health-data", "stats"], "query": [{ "key": "patient", "value": "Jane Patient" }] } }
+        },
+        {
+          "name": "Fetch & Save External",
+          "request": { "method": "GET", "url": "{{baseUrl}}/health-data/fetch-save" }
+        }
+      ]
+    },
+    {
+      "name": "SMS",
+      "item": [
+        {
+          "name": "Send SMS",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sms/send",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+233241000000\",\n  \"message\": \"Hello from Craftelle!\",\n  \"type\": \"appointment\"\n}" }
+          }
+        },
+        {
+          "name": "Schedule Appointment Reminder",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sms/appointments/schedule",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+233241000000\",\n  \"patientName\": \"Jane\",\n  \"appointmentDate\": \"2026-02-15\",\n  \"appointmentTime\": \"10:00\",\n  \"doctorName\": \"Dr. Smith\"\n}" }
+          }
+        },
+        {
+          "name": "Send Appointment Reminders",
+          "request": { "method": "GET", "url": "{{baseUrl}}/sms/appointments/send-reminders" }
+        },
+        {
+          "name": "Send Test SMS",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sms/test",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+233241000000\"\n}" }
+          }
+        },
+        {
+          "name": "Send Water Reminders",
+          "request": { "method": "GET", "url": "{{baseUrl}}/sms/nutrition/send-water-reminders" }
+        },
+        {
+          "name": "Send Nutrition Tips",
+          "request": { "method": "GET", "url": "{{baseUrl}}/sms/nutrition/send-tips" }
+        },
+        {
+          "name": "Send Medication Reminders",
+          "request": { "method": "GET", "url": "{{baseUrl}}/sms/medications/send-reminders" }
+        },
+        {
+          "name": "Send Pregnancy Updates",
+          "request": { "method": "GET", "url": "{{baseUrl}}/sms/pregnancy/send-updates" }
+        }
+      ]
+    },
+    {
+      "name": "Medication Reminders",
+      "item": [
+        {
+          "name": "Create Medication Reminder",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/medication-reminders",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+233241000000\",\n  \"patientName\": \"Jane\",\n  \"medicationName\": \"Folic Acid\",\n  \"dosage\": \"5mg\",\n  \"frequency\": \"daily\",\n  \"time\": \"08:00\"\n}" }
+          }
+        },
+        {
+          "name": "Send Pending Reminders",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/medication-reminders/send-pending"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messaging (Push)",
+      "item": [
+        {
+          "name": "Send Push Notification",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/messaging/send",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"FCM_TOKEN_HERE\",\n  \"title\": \"New Order\",\n  \"message\": \"You have a new order!\"\n}" }
+          }
+        },
+        {
+          "name": "Send Appointment Notification",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/messaging/appointment",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"FCM_TOKEN_HERE\",\n  \"appointmentTime\": \"2026-02-15T10:00:00Z\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Emergency Contacts",
+      "item": [
+        {
+          "name": "Create Contact",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/emergency/contacts",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Emergency Contact\",\n  \"phoneNumber\": \"+233241000000\",\n  \"email\": \"emergency@example.com\",\n  \"relationship\": \"Spouse\"\n}" }
+          }
+        },
+        {
+          "name": "Get All Contacts",
+          "request": { "method": "GET", "url": "{{baseUrl}}/emergency/contacts" }
+        },
+        {
+          "name": "Get Contact By Name",
+          "request": { "method": "GET", "url": "{{baseUrl}}/emergency/contacts/Emergency Contact" }
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/emergency/contacts/Emergency Contact",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phoneNumber\": \"+233241999999\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Contact",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/emergency/contacts/Emergency Contact" }
+        },
+        {
+          "name": "Send Emergency SMS",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/emergency/contacts/send",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+233241000000\",\n  \"message\": \"Emergency! Need help immediately.\",\n  \"type\": \"appointment\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support",
+      "item": [
+        {
+          "name": "Create Support Ticket",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/support",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"John Doe\",\n  \"phoneNumber\": \"+233241000000\",\n  \"email\": \"john@example.com\",\n  \"message\": \"I need help with my order\"\n}" }
+          }
+        },
+        {
+          "name": "Get All Tickets",
+          "request": { "method": "GET", "url": "{{baseUrl}}/support" }
+        },
+        {
+          "name": "Get Ticket By ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/support/TICKET_ID" }
+        },
+        {
+          "name": "Get Tickets By Name",
+          "request": { "method": "GET", "url": "{{baseUrl}}/support/by-name/John Doe" }
+        },
+        {
+          "name": "Update Ticket",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/support/TICKET_ID",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"Updated message\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Ticket",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/support/TICKET_ID" }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Generate Report",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/reports",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"body_temperature\": 36.5,\n  \"heart_rate\": 80,\n  \"oxygen_saturation\": 98,\n  \"blood_pressure\": \"120/80\",\n  \"blood_glucose\": 95,\n  \"notes\": \"Normal vitals\",\n  \"drugs\": \"Folic Acid 5mg\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chatbot",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/chatbot/message",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"What are the symptoms of preeclampsia?\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/search?q=test&type=facility",
+              "host": ["{{baseUrl}}"],
+              "path": ["search"],
+              "query": [
+                { "key": "q", "value": "test" },
+                { "key": "type", "value": "facility" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search (POST)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/search",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"q\": \"test\",\n  \"type\": \"facility\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tracking",
+      "item": [
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/tracking/update",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"driverId\": \"driver123\",\n  \"location\": {\n    \"lat\": 5.6037,\n    \"lng\": -0.1870\n  }\n}" }
+          }
+        },
+        {
+          "name": "Get Location",
+          "request": { "method": "GET", "url": "{{baseUrl}}/tracking/driver123" }
+        }
+      ]
+    },
+    {
+      "name": "Video Call",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": { "method": "GET", "url": "{{baseUrl}}/videcall/healthy" }
+        },
+        {
+          "name": "Get Agora Token",
+          "request": { "method": "GET", "url": "{{baseUrl}}/videcall/token/test-channel/1" }
+        }
+      ]
+    },
+    {
+      "name": "CSV",
+      "item": [
+        {
+          "name": "Upload CSV",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/csv/upload",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Download CSV",
+          "request": { "method": "GET", "url": "{{baseUrl}}/csv/download/CSV_ID" }
+        },
+        {
+          "name": "Get Latest CSV ID",
+          "request": { "method": "GET", "url": "{{baseUrl}}/csv/latest-id" }
+        },
+        {
+          "name": "Get All CSV IDs",
+          "request": { "method": "GET", "url": "{{baseUrl}}/csv/all-ids" }
+        }
+      ]
+    }
+  ]
+}
