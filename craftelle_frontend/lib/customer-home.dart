@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'collections-page.dart';
 import 'login_page.dart';
+import 'chat-contacts.dart';
 
 class CustomerHomePage extends StatefulWidget {
   final String userEmail;
@@ -120,6 +121,23 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 onTap: () {
                   Navigator.pop(context);
                   // TODO: Navigate to help page
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.chat_rounded, color: Color(0xFFFDA4AF)),
+                title: const Text('Messages'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatContactsPage(
+                        userEmail: widget.userEmail,
+                        userName: widget.userEmail.split('@')[0],
+                        userRole: 'Customer',
+                      ),
+                    ),
+                  );
                 },
               ),
               const Divider(height: 20),
