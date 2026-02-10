@@ -18,6 +18,11 @@ export class OrderService {
         wishListItems: createOrderDto.wishListItems || [],
         totalPrice: createOrderDto.totalPrice || 0,
         status: 'Pending',
+        deliveryCity: createOrderDto.deliveryCity || '',
+        deliveryRegion: createOrderDto.deliveryRegion || '',
+        deliveryAddress: createOrderDto.deliveryAddress || '',
+        customerPhone: createOrderDto.customerPhone || '',
+        paymentStatus: createOrderDto.paymentStatus || 'Pending',
       });
 
       await newOrder.save();
@@ -47,6 +52,21 @@ export class OrderService {
     }
   }
 
+  async getOrdersBySeller(sellerEmail: string) {
+    try {
+      const orders = await this.orderDB
+        .find({ 'items.sellerEmail': sellerEmail })
+        .sort({ createdAt: -1 });
+      return {
+        message: 'Seller orders retrieved successfully',
+        success: true,
+        result: orders,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
   async getAllOrders() {
     try {
       const orders = await this.orderDB.find().sort({ createdAt: -1 });
@@ -54,6 +74,26 @@ export class OrderService {
         message: 'Orders retrieved successfully',
         success: true,
         result: orders,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async updateOrderStatus(id: string, orderStatus: string) {
+    try {
+      const updated = await this.orderDB.findByIdAndUpdate(
+        id,
+        { orderStatus },
+        { new: true },
+      );
+      if (!updated) {
+        throw new BadRequestException('Order not found');
+      }
+      return {
+        message: `Order ${orderStatus.toLowerCase()} successfully`,
+        success: true,
+        result: updated,
       };
     } catch (error) {
       throw new BadRequestException(error.message);

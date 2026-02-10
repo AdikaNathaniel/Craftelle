@@ -32,6 +32,10 @@ export class OrderItemDto {
   @IsOptional()
   @IsString()
   sellerName?: string;
+
+  @IsOptional()
+  @IsString()
+  sellerEmail?: string;
 }
 
 export class CreateOrderDto {
@@ -53,4 +57,34 @@ export class CreateOrderDto {
   @IsOptional()
   @IsNumber()
   totalPrice?: number;
+
+  @IsOptional()
+  @IsString()
+  deliveryCity?: string;
+
+  @IsOptional()
+  @IsString()
+  deliveryRegion?: string;
+
+  @IsOptional()
+  @IsString()
+  deliveryAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  customerPhone?: string;
+
+  @IsOptional()
+  @IsString()
+  paymentStatus?: string;
+
+  @IsOptional()
+  @IsString()
+  orderStatus?: string;
+}
+
+export class UpdateOrderStatusDto {
+  @IsNotEmpty()
+  @IsString()
+  orderStatus: string;
 }

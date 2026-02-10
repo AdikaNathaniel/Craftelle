@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'basket-service.dart';
 
@@ -11,6 +10,7 @@ class OrderItem {
   final double price;
   final int quantity;
   final String sellerName;
+  final String sellerEmail;
 
   OrderItem({
     required this.productName,
@@ -19,6 +19,7 @@ class OrderItem {
     required this.price,
     required this.quantity,
     required this.sellerName,
+    this.sellerEmail = '',
   });
 
   String get displaySize {
@@ -43,6 +44,7 @@ class OrderItem {
         'price': price,
         'quantity': quantity,
         'sellerName': sellerName,
+        'sellerEmail': sellerEmail,
       };
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
@@ -52,6 +54,7 @@ class OrderItem {
         price: (json['price'] as num).toDouble(),
         quantity: json['quantity'] ?? 1,
         sellerName: json['sellerName'] ?? '',
+        sellerEmail: json['sellerEmail'] ?? '',
       );
 
   factory OrderItem.fromBasketItem(BasketItem item) => OrderItem(
@@ -61,6 +64,7 @@ class OrderItem {
         price: item.price,
         quantity: item.quantity,
         sellerName: item.sellerName,
+        sellerEmail: item.sellerEmail,
       );
 }
 
@@ -71,6 +75,12 @@ class Order {
   final List<String> wishListItems;
   final double totalPrice;
   final String customerEmail;
+  final String deliveryCity;
+  final String deliveryRegion;
+  final String deliveryAddress;
+  final String customerPhone;
+  final String paymentStatus;
+  final String orderStatus;
 
   Order({
     required this.id,
@@ -79,6 +89,12 @@ class Order {
     required this.wishListItems,
     required this.totalPrice,
     this.customerEmail = '',
+    this.deliveryCity = '',
+    this.deliveryRegion = '',
+    this.deliveryAddress = '',
+    this.customerPhone = '',
+    this.paymentStatus = 'Pending',
+    this.orderStatus = 'Pending',
   });
 
   Map<String, dynamic> toJson() => {
@@ -88,6 +104,12 @@ class Order {
         'wishListItems': wishListItems,
         'totalPrice': totalPrice,
         'customerEmail': customerEmail,
+        'deliveryCity': deliveryCity,
+        'deliveryRegion': deliveryRegion,
+        'deliveryAddress': deliveryAddress,
+        'customerPhone': customerPhone,
+        'paymentStatus': paymentStatus,
+        'orderStatus': orderStatus,
       };
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
@@ -101,6 +123,12 @@ class Order {
         wishListItems: List<String>.from(json['wishListItems'] ?? []),
         totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
         customerEmail: json['customerEmail'] ?? '',
+        deliveryCity: json['deliveryCity'] ?? '',
+        deliveryRegion: json['deliveryRegion'] ?? '',
+        deliveryAddress: json['deliveryAddress'] ?? '',
+        customerPhone: json['customerPhone'] ?? '',
+        paymentStatus: json['paymentStatus'] ?? 'Pending',
+        orderStatus: json['orderStatus'] ?? 'Pending',
       );
 }
 
@@ -159,7 +187,13 @@ class OrderService {
   }
 
   Future<void> placeOrder(
-      List<BasketItem> basketItems, List<WishListItem> wishList) async {
+    List<BasketItem> basketItems,
+    List<WishListItem> wishList, {
+    String deliveryCity = '',
+    String deliveryRegion = '',
+    String deliveryAddress = '',
+    String customerPhone = '',
+  }) async {
     final orderItems =
         basketItems.map((e) => OrderItem.fromBasketItem(e)).toList();
     final totalPrice = basketItems.fold(
@@ -174,6 +208,11 @@ class OrderService {
           'items': orderItems.map((e) => e.toJson()).toList(),
           'wishListItems': wishList.map((e) => e.text).toList(),
           'totalPrice': totalPrice,
+          'deliveryCity': deliveryCity,
+          'deliveryRegion': deliveryRegion,
+          'deliveryAddress': deliveryAddress,
+          'customerPhone': customerPhone,
+          'paymentStatus': 'Confirmed',
         }),
       );
 
@@ -198,6 +237,11 @@ class OrderService {
       wishListItems: wishList.map((e) => e.text).toList(),
       totalPrice: totalPrice,
       customerEmail: _customerEmail,
+      deliveryCity: deliveryCity,
+      deliveryRegion: deliveryRegion,
+      deliveryAddress: deliveryAddress,
+      customerPhone: customerPhone,
+      paymentStatus: 'Confirmed',
     );
     _orders.insert(0, order);
     _notifyListeners();
@@ -218,8 +262,46 @@ class OrderService {
       debugPrint('Error deleting order from backend: $e');
     }
 
-    // Fallback: remove locally
     _orders.removeWhere((e) => e.id == id);
     _notifyListeners();
+  }
+
+  Future<bool> updateOrderStatus(String orderId, String status) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_baseUrl/$orderId/status'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'orderStatus': status}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error updating order status: $e');
+    }
+    return false;
+  }
+
+  Future<List<Order>> fetchSellerOrders(String sellerEmail) async {
+    try {
+      final uri = Uri.parse('$_baseUrl?sellerEmail=$sellerEmail');
+      final response = await http.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final List<dynamic> results = data['result'] ?? [];
+          return results.map((e) => Order.fromJson(e)).toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching seller orders: $e');
+    }
+    return [];
   }
 }

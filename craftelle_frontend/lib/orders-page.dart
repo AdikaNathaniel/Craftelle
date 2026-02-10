@@ -90,7 +90,7 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   Widget _buildOrderCard(Order order, int index) {
-    final dateStr = DateFormat('MMM d, yyyy – h:mm a').format(order.createdAt);
+    final dateStr = DateFormat('MMM d, yyyy - h:mm a').format(order.createdAt);
     final orderNum = _orderService.orders.length - index;
 
     return Container(
@@ -228,36 +228,81 @@ class _OrdersPageState extends State<OrdersPage> {
               ),
             ),
 
-          // Delete button
+          // Order Status + Delete
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: () => _confirmDelete(order),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.delete_outline, size: 16, color: Colors.red[400]),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Remove',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red[400],
+            child: Row(
+              children: [
+                _buildOrderStatusBadge(order.orderStatus),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => _confirmDelete(order),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.delete_outline, size: 16, color: Colors.red[400]),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Remove',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red[400],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderStatusBadge(String status) {
+    Color color;
+    IconData icon;
+    switch (status) {
+      case 'Accepted':
+        color = Colors.green;
+        icon = Icons.check_circle;
+        break;
+      case 'Rejected':
+        color = Colors.red;
+        icon = Icons.cancel;
+        break;
+      default:
+        color = Colors.orange;
+        icon = Icons.hourglass_top;
+        status = 'Pending';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            status,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
         ],
@@ -337,8 +382,15 @@ class _OrdersPageState extends State<OrdersPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(Icons.circle, size: 6, color: _pink),
+            padding: const EdgeInsets.only(top: 4),
+            child: Container(
+              width: 6,
+              height: 6,
+              decoration: const BoxDecoration(
+                color: _pink,
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(

@@ -21,6 +21,9 @@ export class OrderItemSchema {
 
   @Prop({ default: '' })
   sellerName: string;
+
+  @Prop({ default: '' })
+  sellerEmail: string;
 }
 
 @Schema({ timestamps: true })
@@ -39,6 +42,24 @@ export class Order {
 
   @Prop({ default: 'Pending' })
   status: string;
+
+  @Prop({ default: '' })
+  deliveryCity: string;
+
+  @Prop({ default: '' })
+  deliveryRegion: string;
+
+  @Prop({ default: '' })
+  deliveryAddress: string;
+
+  @Prop({ default: '' })
+  customerPhone: string;
+
+  @Prop({ default: 'Pending' })
+  paymentStatus: string;
+
+  @Prop({ default: 'Pending' })
+  orderStatus: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

@@ -5,6 +5,7 @@ import 'product-upload.dart';
 import 'collections-page.dart';
 import 'login_page.dart';
 import 'chat-contacts.dart';
+import 'seller-orders-page.dart';
 
 class SellerHomePage extends StatefulWidget {
   final String userEmail;
@@ -16,7 +17,12 @@ class SellerHomePage extends StatefulWidget {
 }
 
 class _SellerHomePageState extends State<SellerHomePage> {
-  String _selectedPage = 'Upload Product';
+  int _currentIndex = 0;
+
+  static const _pink = Color(0xFFFDA4AF);
+  static const _pinkDark = Color(0xFFFB7185);
+
+  final _pageTitles = ['Upload Product', 'Masterpieces', 'Orders', 'Messages'];
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -132,38 +138,23 @@ class _SellerHomePageState extends State<SellerHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isHomePage = _selectedPage == 'Upload Product';
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectedPage),
+        title: Text(_pageTitles[_currentIndex]),
         centerTitle: true,
-        backgroundColor: const Color(0xFFFDA4AF),
+        backgroundColor: _pink,
         foregroundColor: Colors.white,
-        leading: isHomePage
-            ? Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-              )
-            : IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  setState(() {
-                    _selectedPage = 'Upload Product';
-                  });
-                },
-              ),
         actions: [
           IconButton(
             icon: CircleAvatar(
               radius: 16,
-              child: Text(
-                widget.userEmail.isNotEmpty ? widget.userEmail[0].toUpperCase() : 'S',
-                style: const TextStyle(color: Color(0xFFFDA4AF), fontSize: 16),
-              ),
               backgroundColor: Colors.white,
+              child: Text(
+                widget.userEmail.isNotEmpty
+                    ? widget.userEmail[0].toUpperCase()
+                    : 'S',
+                style: const TextStyle(color: _pink, fontSize: 16),
+              ),
             ),
             onPressed: () {
               _showUserInfoDialog(context);
@@ -171,79 +162,67 @@ class _SellerHomePageState extends State<SellerHomePage> {
           ),
         ],
       ),
-      drawer: isHomePage ? Drawer(
-        child: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Color(0xFFFDA4AF),
-                ),
-                child: Center(
-                  child: Text(
-                    'SELLER',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.add_photo_alternate, color: Color(0xFFFDA4AF)),
-                title: const Text('Upload Product'),
-                selected: _selectedPage == 'Upload Product',
-                onTap: () {
-                  setState(() {
-                    _selectedPage = 'Upload Product';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.collections, color: Color(0xFFFDA4AF)),
-                title: const Text('Our Masterpieces'),
-                selected: _selectedPage == 'Our Masterpieces',
-                onTap: () {
-                  setState(() {
-                    _selectedPage = 'Our Masterpieces';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.chat_rounded, color: Color(0xFFFDA4AF)),
-                title: const Text('Messages'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatContactsPage(
-                        userEmail: widget.userEmail,
-                        userName: widget.userEmail.split('@')[0],
-                        userRole: 'Seller',
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+      body: _buildBody(),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
-      ) : null,
-      body: _buildContent(_selectedPage),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: _pinkDark,
+          unselectedItemColor: Colors.grey[400],
+          selectedFontSize: 12,
+          unselectedFontSize: 11,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_photo_alternate_outlined),
+              activeIcon: Icon(Icons.add_photo_alternate),
+              label: 'Upload',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.collections_outlined),
+              activeIcon: Icon(Icons.collections),
+              label: 'Masterpieces',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long),
+              label: 'Orders',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_outlined),
+              activeIcon: Icon(Icons.chat_rounded),
+              label: 'Messages',
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildContent(String page) {
-    switch (page) {
-      case 'Upload Product':
+  Widget _buildBody() {
+    switch (_currentIndex) {
+      case 0:
         return ProductUploadPage(userEmail: widget.userEmail);
-      case 'Our Masterpieces':
+      case 1:
         return CollectionsPage(userEmail: widget.userEmail, isSellerView: true);
+      case 2:
+        return SellerOrdersPage(sellerEmail: widget.userEmail);
+      case 3:
+        return ChatContactsPage(
+          userEmail: widget.userEmail,
+          userName: widget.userEmail.split('@')[0],
+          userRole: 'Seller',
+        );
       default:
         return ProductUploadPage(userEmail: widget.userEmail);
     }

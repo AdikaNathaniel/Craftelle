@@ -148,18 +148,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.chat_rounded, color: Color(0xFFFDA4AF)),
-                title: const Text('Messages'),
+                leading: const Icon(Icons.policy_outlined, color: Color(0xFFFDA4AF)),
+                title: const Text('Payment Policy'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ChatContactsPage(
-                        userEmail: widget.userEmail,
-                        userName: widget.userEmail.split('@')[0],
-                        userRole: 'Customer',
-                      ),
+                      builder: (context) => const _PaymentPolicyPage(),
                     ),
                   );
                 },
@@ -540,6 +536,189 @@ class _ContactUsPageState extends State<_ContactUsPage> with TickerProviderState
           ),
         ),
       ),
+    );
+  }
+}
+
+// Payment Policy Page
+class _PaymentPolicyPage extends StatelessWidget {
+  const _PaymentPolicyPage();
+
+  static const _pink = Color(0xFFFDA4AF);
+  static const _pinkDark = Color(0xFFFB7185);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFF1F2),
+      appBar: AppBar(
+        title: const Text('Payment Policy'),
+        centerTitle: true,
+        backgroundColor: _pink,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+
+            // Header Icon
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: _pink.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.policy, color: _pinkDark, size: 48),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'PAYMENT POLICY',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F2937),
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Policy Points
+            _buildPolicyCard(
+              Icons.check_circle_outline,
+              'Payment validates your order.',
+            ),
+            const SizedBox(height: 12),
+            _buildPolicyCard(
+              Icons.timer_off_outlined,
+              'No refund 8 hours after your order has been placed.',
+            ),
+            const SizedBox(height: 24),
+
+            // Payment Details Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: _pink.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [_pink, _pinkDark],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.phone_android, color: Colors.white, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Payment Details',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildDetailRow('Payment Number', '0500301646'),
+                  const Divider(height: 20),
+                  _buildDetailRow('Network', 'Telecel'),
+                  const Divider(height: 20),
+                  _buildDetailRow('Name', 'Niini Sasah'),
+                  const Divider(height: 20),
+                  _buildDetailRow('Reference', 'What you ordered'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildPolicyCard(IconData icon, String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _pink.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: _pinkDark, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Color(0xFF374151),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildDetailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 130,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

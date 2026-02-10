@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'basket-service.dart';
 import 'order-service.dart';
+import 'payment-page.dart';
 
 class BasketPage extends StatefulWidget {
   final VoidCallback? onOrderPlaced;
@@ -151,33 +152,9 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
             child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
           ),
           ElevatedButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.pop(ctx);
-              await OrderService().placeOrder(
-                _basket.items,
-                _basket.wishList,
-              );
-              await _basket.clearBasket();
-              await _basket.clearWishList();
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.white),
-                        SizedBox(width: 12),
-                        Text('Order placed successfully!'),
-                      ],
-                    ),
-                    backgroundColor: _pink,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-                widget.onOrderPlaced?.call();
-              }
+              _showDeliveryDialog();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: _pink,
@@ -186,10 +163,172 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text('Place Order',
+            child: const Text('Continue',
                 style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDeliveryDialog() {
+    final cityController = TextEditingController();
+    final regionController = TextEditingController();
+    final addressController = TextEditingController();
+    final phoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: double.infinity,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: _pink.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.location_on, color: _pink, size: 36),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Delivery Location',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Where should we deliver your order?',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  _buildDeliveryField(cityController, 'City', Icons.location_city),
+                  const SizedBox(height: 14),
+                  _buildDeliveryField(regionController, 'Region', Icons.map),
+                  const SizedBox(height: 14),
+                  _buildDeliveryField(
+                      addressController, 'Address / Landmark', Icons.place,
+                      maxLines: 2),
+                  const SizedBox(height: 14),
+                  _buildDeliveryField(
+                      phoneController, 'Phone Number', Icons.phone,
+                      keyboardType: TextInputType.phone),
+                  const SizedBox(height: 26),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: Text('Cancel',
+                              style: TextStyle(
+                                  color: Colors.grey[600], fontSize: 15)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (cityController.text.trim().isEmpty ||
+                                regionController.text.trim().isEmpty ||
+                                phoneController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Please fill in City, Region and Phone')),
+                              );
+                              return;
+                            }
+                            Navigator.pop(ctx);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PaymentPage(
+                                  basketItems: _basket.items,
+                                  wishList: _basket.wishList,
+                                  totalPrice: _basket.totalPrice,
+                                  deliveryCity: cityController.text.trim(),
+                                  deliveryRegion: regionController.text.trim(),
+                                  deliveryAddress:
+                                      addressController.text.trim(),
+                                  customerPhone: phoneController.text.trim(),
+                                  onPaymentConfirmed: () async {
+                                    await _basket.clearBasket();
+                                    await _basket.clearWishList();
+                                    if (mounted) {
+                                      widget.onOrderPlaced?.call();
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _pink,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('Continue to Payment',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 15)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeliveryField(
+      TextEditingController controller, String hint, IconData icon,
+      {int maxLines = 1, TextInputType? keyboardType}) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey[400]),
+        prefixIcon: Icon(icon, color: _pink, size: 20),
+        filled: true,
+        fillColor: _bg,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _pink.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _pink.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _pink, width: 2),
+        ),
       ),
     );
   }
