@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { OrderService } from 'src/orders/orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { CancelOrderDto } from 'src/orders/dto/cancel-order.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -12,13 +11,16 @@ export class OrderController {
     return await this.orderService.createOrder(createOrderDto);
   }
 
-  @Put('cancel')
-  async cancelOrder(@Body() cancelOrderDto: CancelOrderDto) {
-    return await this.orderService.cancelOrder(cancelOrderDto);
+  @Get()
+  async getOrders(@Query('customerEmail') customerEmail?: string) {
+    if (customerEmail) {
+      return await this.orderService.getOrdersByCustomer(customerEmail);
+    }
+    return await this.orderService.getAllOrders();
   }
 
-  @Get()
-  async getAllOrders() {
-    return await this.orderService.getAllOrders();
+  @Delete(':id')
+  async deleteOrder(@Param('id') id: string) {
+    return await this.orderService.deleteOrder(id);
   }
 }

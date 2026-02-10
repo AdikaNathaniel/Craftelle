@@ -124,6 +124,10 @@ flutter:
  
   assets:
     - assets/craftelle.png
+    - assets/forever-flower-bouquet/
+    - assets/bobo-ballon/
+    - assets/treats-box/
+    - assets/room-decor/
     - .env
   
 

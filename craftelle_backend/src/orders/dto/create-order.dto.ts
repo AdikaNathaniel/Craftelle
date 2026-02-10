@@ -1,40 +1,56 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class CreateOrderDto {
+export class OrderItemDto {
   @IsNotEmpty()
   @IsString()
   productName: string;
 
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  selectedSize?: string;
+
   @IsNotEmpty()
   @IsNumber()
-  quantity: number;
-
-  @IsOptional()
-  @IsString()
-  userId?: string;
-
-  @IsOptional()
-  @IsString()
-  userEmail?: string;
+  price: number;
 
   @IsOptional()
   @IsNumber()
-  price?: number;
-
-  @IsOptional()
-  @IsNumber()
-  totalAmount?: number;
+  quantity?: number;
 
   @IsOptional()
   @IsString()
-  category?: string;
-
-  @IsOptional()
-  @IsString()
-  deliveryCity?: string;
-
-  @IsOptional()
-  @IsString()
-  deliveryRegion?: string;
+  sellerName?: string;
 }
 
+export class CreateOrderDto {
+  @IsNotEmpty()
+  @IsString()
+  customerEmail: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OrderItemDto)
+  items?: OrderItemDto[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  wishListItems?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  totalPrice?: number;
+}

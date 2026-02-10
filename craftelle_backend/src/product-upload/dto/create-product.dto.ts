@@ -51,6 +51,10 @@ export class CreateProductDto {
   @IsNumber()
   basePrice?: number;
 
+  @IsOptional()
+  @IsString()
+  priceDisplay?: string;
+
   @IsNotEmpty()
   @IsString()
   sellerEmail: string;

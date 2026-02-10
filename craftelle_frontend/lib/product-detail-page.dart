@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'basket-service.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -222,12 +224,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                               ),
                             ),
                             child: Center(
-                              child: Text(
-                                'GH₵ ${widget.product['basePrice'].toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFDA4AF),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  widget.product['priceDisplay'] != null && widget.product['priceDisplay'].toString().isNotEmpty
+                                      ? widget.product['priceDisplay']
+                                      : 'GHS ${NumberFormat('#,##0').format(widget.product['basePrice'])} and above',
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFDA4AF),
+                                  ),
                                 ),
                               ),
                             ),
@@ -243,7 +251,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                             height: 56,
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                _showContactDialog();
+                                _addToBasket();
                               },
                               icon: const Icon(Icons.shopping_basket, size: 24),
                               label: const Text(
@@ -321,7 +329,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'GH₵ ${price.toStringAsFixed(0)}',
+                  'GHS ${NumberFormat('#,##0').format(price)}',
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -341,51 +349,131 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     );
   }
 
-  void _showContactDialog() {
+  void _addToBasket() {
+    final bool hasSizes = widget.product['hasSizes'] == true;
+    final sizePrices = widget.product['sizePrices'];
+
+    if (hasSizes && sizePrices != null) {
+      _showSizeSelectionDialog(sizePrices);
+    } else {
+      final item = BasketItem(
+        productId: widget.product['_id'] ?? '',
+        productName: widget.product['name'] ?? '',
+        imageUrl: widget.product['imageUrl'] ?? '',
+        selectedSize: null,
+        price: (widget.product['basePrice'] as num?)?.toDouble() ?? 0.0,
+        sellerName: widget.product['sellerName'] ?? '',
+        sellerEmail: widget.product['sellerEmail'] ?? '',
+      );
+      BasketService().addItem(item);
+      _showAddedSnackbar();
+    }
+  }
+
+  void _showSizeSelectionDialog(Map<String, dynamic> sizePrices) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.email,
-                color: Color(0xFFFDA4AF),
-                size: 64,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFDA4AF).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.shopping_basket, color: Color(0xFFFDA4AF), size: 32),
               ),
               const SizedBox(height: 16),
               const Text(
-                'Contact Seller',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                'Select Size',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               Text(
-                widget.product['sellerEmail'] ?? '',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFFFDA4AF),
-                ),
+                widget.product['name'] ?? '',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFDA4AF),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-                child: const Text("Close"),
-              ),
+              const SizedBox(height: 20),
+              if (sizePrices['small'] != null)
+                _buildSizeOption('Small', 'small', sizePrices['small'], ctx),
+              if (sizePrices['medium'] != null)
+                _buildSizeOption('Medium', 'medium', sizePrices['medium'], ctx),
+              if (sizePrices['large'] != null)
+                _buildSizeOption('Large', 'large', sizePrices['large'], ctx),
+              if (sizePrices['extraLarge'] != null)
+                _buildSizeOption('Extra Large', 'extraLarge', sizePrices['extraLarge'], ctx),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSizeOption(String displayName, String sizeKey, dynamic price, BuildContext dialogContext) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(dialogContext);
+        final item = BasketItem(
+          productId: widget.product['_id'] ?? '',
+          productName: widget.product['name'] ?? '',
+          imageUrl: widget.product['imageUrl'] ?? '',
+          selectedSize: sizeKey,
+          price: (price as num).toDouble(),
+          sellerName: widget.product['sellerName'] ?? '',
+          sellerEmail: widget.product['sellerEmail'] ?? '',
+        );
+        BasketService().addItem(item);
+        _showAddedSnackbar();
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFDA4AF), width: 1.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              displayName,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            Text(
+              'GHS ${NumberFormat('#,##0').format(price)}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFDA4AF),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddedSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 12),
+            Text('Added to Basket!'),
+          ],
+        ),
+        backgroundColor: const Color(0xFFFDA4AF),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

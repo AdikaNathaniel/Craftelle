@@ -48,8 +48,9 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
+          final products = data['result'] as List<dynamic>;
           setState(() {
-            _products = data['result'];
+            _products = products;
             _isLoading = false;
           });
           _animationController.forward();

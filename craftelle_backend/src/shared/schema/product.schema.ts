@@ -37,6 +37,9 @@ export class Product extends Document {
   @Prop()
   basePrice?: number;
 
+  @Prop()
+  priceDisplay?: string;
+
   @Prop({ required: true })
   sellerEmail: string;
 

@@ -7,8 +7,14 @@ export class StripeService {
   private stripe: Stripe;
 
   constructor() {
-    const stripeConfig = config.get('stripe');
-    this.stripe = new Stripe(stripeConfig.secret_key || process.env.STRIPE_SECRET_KEY, {
+    let secretKey = process.env.STRIPE_SECRET_KEY || '';
+    try {
+      const stripeConfig = config.get('stripe') as Record<string, string>;
+      secretKey = stripeConfig.secret_key || secretKey;
+    } catch (_) {
+      // config directory not available in production
+    }
+    this.stripe = new Stripe(secretKey, {
       apiVersion: '2025-02-24.acacia',
     });
   }
