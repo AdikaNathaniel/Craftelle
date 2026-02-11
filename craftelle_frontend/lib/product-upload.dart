@@ -360,24 +360,6 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Create Your Masterpiece',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFFDA4AF),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Share your beautiful creation with the world',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 24),
-
               // Image Upload
               GestureDetector(
                 onTap: _pickImage,

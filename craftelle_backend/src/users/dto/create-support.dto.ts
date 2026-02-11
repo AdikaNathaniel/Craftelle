@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
 
 export class CreateSupportDto {
   @IsString()
@@ -16,4 +16,8 @@ export class CreateSupportDto {
   @IsString()
   @IsNotEmpty()
   message: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
 }

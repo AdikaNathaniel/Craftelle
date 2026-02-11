@@ -8,6 +8,9 @@ import 'basket-service.dart';
 import 'basket-page.dart';
 import 'order-service.dart';
 import 'orders-page.dart';
+import 'profile-page.dart';
+import 'support-page.dart';
+import 'settings-page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   final String userEmail;
@@ -104,12 +107,21 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                widget.userEmail,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      widget.userEmail,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -128,7 +140,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 title: const Text('My Profile'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Navigate to profile page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ProfilePage(userEmail: widget.userEmail),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -136,15 +154,29 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 title: const Text('Settings'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Navigate to settings page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          SettingsPage(userEmail: widget.userEmail),
+                    ),
+                  );
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.help_outline, color: Color(0xFFFDA4AF)),
-                title: const Text('Help & Support'),
+                leading: const Icon(Icons.support_agent, color: Color(0xFFFDA4AF)),
+                title: const Text('Support'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Navigate to help page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SupportPage(
+                        userEmail: widget.userEmail,
+                        userRole: 'Customer',
+                      ),
+                    ),
+                  );
                 },
               ),
               ListTile(

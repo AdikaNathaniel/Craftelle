@@ -4,12 +4,13 @@ import 'dart:convert';
 import 'login_page.dart';
 import 'support-settings.dart';
 import 'users_summary.dart';
-import 'set_profile.dart';
 import 'chat-contacts.dart';
+import 'profile-page.dart';
+import 'settings-page.dart';
 
 class AdminHomePage extends StatefulWidget {
   final String userEmail;
-  
+
   const AdminHomePage({super.key, required this.userEmail});
 
   @override
@@ -17,7 +18,12 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class _AdminHomePageState extends State<AdminHomePage> {
-  String _selectedPage = 'Users';
+  int _currentIndex = 0;
+
+  static const _pink = Color(0xFFFDA4AF);
+  static const _pinkDark = Color(0xFFFB7185);
+
+  final _pageTitles = ['Users', 'Support', 'Messages'];
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -31,219 +37,145 @@ class _AdminHomePageState extends State<AdminHomePage> {
         if (responseData['success']) {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => LoginPage()),
-            (Route<dynamic> route) => false
-          );
-        } else {
-          _showSnackbar(
-            context, 
-            "Logout failed: ${responseData['message']}", 
-            Colors.red
+            (Route<dynamic> route) => false,
           );
         }
-      } else {
-        _showSnackbar(
-          context, 
-          "Logout failed: Server error", 
-          Colors.red
-        );
       }
     } catch (e) {
-      _showSnackbar(
-        context, 
-        "Logout failed: ${e.toString()}", 
-        Colors.red
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: ${e.toString()}')),
       );
     }
-  }
-
-  void _showSnackbar(BuildContext context, String message, Color color) {
-    final snackBar = SnackBar(
-      content: Text(message),
-      backgroundColor: color,
-      duration: const Duration(seconds: 2),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  String _shortenName(String fullName) {
-    final nameParts = fullName.trim().split(' ');
-    if (nameParts.length <= 2) {
-      return fullName; // Already short enough
-    }
-    // Return first name + last name
-    return '${nameParts.first} ${nameParts.last}';
   }
 
   void _showUserInfoDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (dialogContext) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.9,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              // Avatar
+              CircleAvatar(
+                backgroundColor: _pink,
+                radius: 40,
+                child: Text(
+                  widget.userEmail.isNotEmpty
+                      ? widget.userEmail[0].toUpperCase()
+                      : 'A',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Email row
-              _buildProfileItem(
-                icon: Icons.email_outlined,
-                text: widget.userEmail,
-                onTap: null,
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      widget.userEmail,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
               ),
+              const SizedBox(height: 8),
+              const Text(
+                'Admin',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const Divider(height: 32),
 
-              // Settings row
-              _buildProfileItem(
-                icon: Icons.settings_outlined,
-                text: 'Settings',
+              // My Profile
+              ListTile(
+                leading: const Icon(Icons.person_outline, color: _pink),
+                title: const Text('My Profile'),
                 onTap: () {
                   Navigator.pop(dialogContext);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SetProfilePage(userEmail: widget.userEmail),
+                      builder: (context) =>
+                          ProfilePage(userEmail: widget.userEmail),
                     ),
                   );
                 },
               ),
 
-              const SizedBox(height: 20),
-
-              // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFFDA4AF),
+              // Settings
+              ListTile(
+                leading: const Icon(Icons.settings_outlined, color: _pink),
+                title: const Text('Settings'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          SettingsPage(userEmail: widget.userEmail),
                     ),
-                    child: const Text("Close"),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () async {
-                      Navigator.pop(dialogContext);
-                      await _logout(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("Logout"),
-                        SizedBox(width: 6),
-                        Icon(Icons.logout, size: 18),
-                      ],
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+              const Divider(height: 20),
 
-  Widget _buildProfileItem({
-    required IconData icon,
-    required String text,
-    required VoidCallback? onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: const Color(0xFFFDA4AF)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  text,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              // Logout
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.red),
                 ),
+                onTap: () async {
+                  Navigator.pop(dialogContext);
+                  await _logout(context);
+                },
               ),
-              if (onTap != null) 
-                const Icon(Icons.chevron_right, color: Colors.grey, size: 16),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Color _getAppBarColor(String page) {
-    return const Color(0xFFFDA4AF);
-  }
-
-  String _getAppBarTitle(String page) {
-    switch (page) {
-      case 'Facility Profile':
-        return 'Create Facility Profile';
-      default:
-        return page;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isHomePage = _selectedPage == 'Users';
-    
     return Scaffold(
       appBar: AppBar(
-        title: Text(_getAppBarTitle(_selectedPage)),
+        title: Text(_pageTitles[_currentIndex]),
         centerTitle: true,
-        backgroundColor: _getAppBarColor(_selectedPage),
+        backgroundColor: _pink,
         foregroundColor: Colors.white,
-        leading: isHomePage
-            ? Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-              )
-            : IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  setState(() {
-                    _selectedPage = 'Users';
-                  });
-                },
-              ),
         actions: [
           IconButton(
             icon: CircleAvatar(
               radius: 16,
-              child: Text(
-                widget.userEmail.isNotEmpty ? widget.userEmail[0].toUpperCase() : 'A',
-                style: const TextStyle(color: Color(0xFFFDA4AF), fontSize: 16),
-              ),
               backgroundColor: Colors.white,
+              child: Text(
+                widget.userEmail.isNotEmpty
+                    ? widget.userEmail[0].toUpperCase()
+                    : 'A',
+                style: const TextStyle(color: _pink, fontSize: 16),
+              ),
             ),
             onPressed: () {
               _showUserInfoDialog(context);
@@ -251,79 +183,60 @@ class _AdminHomePageState extends State<AdminHomePage> {
           ),
         ],
       ),
-      drawer: isHomePage ? Drawer(
-        child: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Color(0xFFFDA4AF),
-                ),
-                child: Center(
-                  child: Text(
-                    'ADMIN',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.supervised_user_circle, color: Color(0xFFFDA4AF)),
-                title: const Text('All Users'),
-                selected: _selectedPage == 'Users',
-                onTap: () {
-                  setState(() {
-                    _selectedPage = 'Users';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.support_agent, color: Color(0xFFFDA4AF)),
-                title: const Text('Support'),
-                selected: _selectedPage == 'Support',
-                onTap: () {
-                  setState(() {
-                    _selectedPage = 'Support';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.chat_rounded, color: Color(0xFFFDA4AF)),
-                title: const Text('Messages'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatContactsPage(
-                        userEmail: widget.userEmail,
-                        userName: widget.userEmail.split('@')[0],
-                        userRole: 'Admin',
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+      body: _buildBody(),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
-      ) : null,
-      body: _buildContent(_selectedPage),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: _pinkDark,
+          unselectedItemColor: Colors.grey[400],
+          selectedFontSize: 12,
+          unselectedFontSize: 11,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.supervised_user_circle_outlined),
+              activeIcon: Icon(Icons.supervised_user_circle),
+              label: 'Users',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.support_agent_outlined),
+              activeIcon: Icon(Icons.support_agent),
+              label: 'Support',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_outlined),
+              activeIcon: Icon(Icons.chat_rounded),
+              label: 'Messages',
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildContent(String page) {
-    switch (page) {
-      case 'Users':
+  Widget _buildBody() {
+    switch (_currentIndex) {
+      case 0:
         return UserListPage(userEmail: widget.userEmail);
-      case 'Support':
+      case 1:
         return SupportSettingsPage(userEmail: widget.userEmail);
+      case 2:
+        return ChatContactsPage(
+          userEmail: widget.userEmail,
+          userName: widget.userEmail.split('@')[0],
+          userRole: 'Admin',
+        );
       default:
         return UserListPage(userEmail: widget.userEmail);
     }

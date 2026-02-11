@@ -99,6 +99,7 @@ class _SupportRequestsPageState extends State<SupportRequestsPage> {
                         ),
                         const SizedBox(height: 10),
                         infoRow(Icons.person, 'Name', request['name']),
+                        infoRow(Icons.badge, 'Role', request['role'] ?? ''),
                         infoRow(Icons.phone, 'Phone', request['phoneNumber']),
                         infoRow(Icons.email, 'Email', request['email']),
                         infoRow(Icons.message, 'Message', request['message']),
@@ -117,14 +118,18 @@ class _SupportRequestsPageState extends State<SupportRequestsPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(icon, color: Color(0xFFFDA4AF)),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              '$label: $value',
-              style: const TextStyle(fontSize: 16),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '$label: $value',
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
           ),
         ],

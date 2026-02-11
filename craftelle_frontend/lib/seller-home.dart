@@ -6,6 +6,9 @@ import 'collections-page.dart';
 import 'login_page.dart';
 import 'chat-contacts.dart';
 import 'seller-orders-page.dart';
+import 'profile-page.dart';
+import 'settings-page.dart';
+import 'support-page.dart';
 
 class SellerHomePage extends StatefulWidget {
   final String userEmail;
@@ -51,83 +54,120 @@ class _SellerHomePageState extends State<SellerHomePage> {
     showDialog(
       context: context,
       builder: (dialogContext) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.9,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              // Avatar
+              CircleAvatar(
+                backgroundColor: _pink,
+                radius: 40,
+                child: Text(
+                  widget.userEmail.isNotEmpty
+                      ? widget.userEmail[0].toUpperCase()
+                      : 'S',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Email row
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.email_outlined, size: 20, color: Color(0xFFFDA4AF)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        widget.userEmail,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      widget.userEmail,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
+              const SizedBox(height: 8),
+              const Text(
+                'Seller',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const Divider(height: 32),
 
-              const SizedBox(height: 20),
+              // My Profile
+              ListTile(
+                leading: const Icon(Icons.person_outline, color: _pink),
+                title: const Text('My Profile'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ProfilePage(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+              // Settings
+              ListTile(
+                leading: const Icon(Icons.settings_outlined, color: _pink),
+                title: const Text('Settings'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          SettingsPage(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
 
-              // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFFDA4AF),
+              // Support
+              ListTile(
+                leading: const Icon(Icons.support_agent, color: _pink),
+                title: const Text('Support'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SupportPage(
+                        userEmail: widget.userEmail,
+                        userRole: 'Seller',
+                      ),
                     ),
-                    child: const Text("Close"),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () async {
-                      Navigator.pop(dialogContext);
-                      await _logout(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("Logout"),
-                        SizedBox(width: 6),
-                        Icon(Icons.logout, size: 18),
-                      ],
-                    ),
-                  ),
-                ],
+                  );
+                },
+              ),
+              const Divider(height: 20),
+
+              // Logout
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () async {
+                  Navigator.pop(dialogContext);
+                  await _logout(context);
+                },
               ),
             ],
           ),

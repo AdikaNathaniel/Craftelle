@@ -14,6 +14,9 @@ export class Support extends Document {
 
   @Prop({ required: true })
   message: string;
+
+  @Prop({ default: '' })
+  role: string;
 }
 
 export const SupportSchema = SchemaFactory.createForClass(Support);

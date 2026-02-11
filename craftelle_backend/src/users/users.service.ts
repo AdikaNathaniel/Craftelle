@@ -288,6 +288,67 @@ export class UsersService {
     }
   }
 
+  async getUserByEmail(email: string) {
+    try {
+      const user = await this.userDB.findOne({ email });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return {
+        success: true,
+        message: 'User profile fetched successfully',
+        result: {
+          id: user._id.toString(),
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          phone: user.phone,
+          type: user.type,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProfile(email: string, data: { name?: string; username?: string; phone?: string }) {
+    try {
+      const user = await this.userDB.findOne({ email });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const updateData: Record<string, string> = {};
+      if (data.name) updateData.name = data.name;
+      if (data.username) updateData.username = data.username;
+      if (data.phone) updateData.phone = data.phone;
+
+      if (Object.keys(updateData).length === 0) {
+        throw new Error('No fields to update');
+      }
+
+      await this.userDB.updateOne({ _id: user._id }, updateData);
+
+      const updated = await this.userDB.findOne({ email });
+
+      return {
+        success: true,
+        message: 'Profile updated successfully',
+        result: {
+          id: updated._id.toString(),
+          name: updated.name,
+          username: updated.username,
+          email: updated.email,
+          phone: updated.phone,
+          type: updated.type,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async updatePasswordOrName(updatePasswordOrNameDto: UpdateUserDto) {
     try {
       const { email, oldPassword, newPassword, name } = updatePasswordOrNameDto;
@@ -427,8 +488,22 @@ async reactivateAccount(email: string, adminEmail: string) {
   }
 }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async deleteAccountByEmail(email: string) {
+    try {
+      const user = await this.userDB.findOne({ email });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      await this.userDB.deleteMany({ email });
+
+      return {
+        success: true,
+        message: 'Account deleted successfully',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async clearAllUsers() {

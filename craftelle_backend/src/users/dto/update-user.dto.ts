@@ -19,3 +19,20 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
   name?: string;
 }
+
+export class UpdateProfileDto {
+  @IsEmail()
+  email: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+}

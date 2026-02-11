@@ -1,216 +1,468 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'login_page.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  final String userEmail;
+
+  const SettingsPage({super.key, required this.userEmail});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController oldPasswordController = TextEditingController(); // For old password
-  TextEditingController newPasswordController = TextEditingController(); // For new password
-  TextEditingController nameController = TextEditingController(); // For name
-  bool _obscureOldPassword = true;
-  bool _obscureNewPassword = true;
+  static const _pink = Color(0xFFFDA4AF);
+  static const _pinkDark = Color(0xFFFB7185);
+  static const _bg = Color(0xFFFFF1F2);
+  static const _baseUrl = 'https://neurosense-palsy.fly.dev/api/v1/users';
+
+  bool _isDeleting = false;
+
+  // Password change controllers
+  final _oldPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  bool _obscureOld = true;
+  bool _obscureNew = true;
+  bool _isSaving = false;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [
-            Color(0xFFFDA4AF),
-            Color(0xFFF9A8D4),
-            Color(0xFFFDA4AF),
+  void dispose() {
+    _oldPasswordController.dispose();
+    _newPasswordController.dispose();
+    super.dispose();
+  }
+
+  // ---------- Delete Account ----------
+
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+            SizedBox(width: 10),
+            Text('Delete Account'),
           ],
         ),
-      ),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Settings",
-             style: TextStyle(
-            color: Colors.white,
-          ),
-          ),
-          centerTitle: true,
-          backgroundColor: const Color(0xFFFB7185),
-        ),
-        backgroundColor: Colors.transparent,
-        body: _page(),
-      ),
-    );
-  }
-
-  Widget _page() {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _icon(),
-              const SizedBox(height: 50),
-              _inputField("Email", emailController, icon: Icons.email_outlined),
-              const SizedBox(height: 20),
-              _passwordField("Old Password", oldPasswordController, _obscureOldPassword, (value) {
-                setState(() {
-                  _obscureOldPassword = value;
-                });
-              }),
-              const SizedBox(height: 20),
-              _passwordField("New Password", newPasswordController, _obscureNewPassword, (value) {
-                setState(() {
-                  _obscureNewPassword = value;
-                });
-              }),
-              const SizedBox(height: 20),
-              _inputField("Name", nameController),
-              const SizedBox(height: 20),
-              _saveBtn(),
-            ],
+        content: const Text(
+          'Are you sure you want to delete your account?',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1F2937),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _icon() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white, width: 2),
-        shape: BoxShape.circle,
-      ),
-      child: ClipOval(
-        child: Image.asset(
-          'assets/craftelle.png',
-          width: 120,
-          height: 120,
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-
-  Widget _inputField(String labelText, TextEditingController controller, {bool isPassword = false, IconData? icon}) {
-    return TextField(
-      style: const TextStyle(color: Colors.white),
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: icon != null 
-            ? Icon(icon, color: Colors.white70) 
-            : null,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Colors.white),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-        floatingLabelBehavior: FloatingLabelBehavior.auto,
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
-      ),
-      obscureText: isPassword,
-    );
-  }
-
-  Widget _passwordField(String labelText, TextEditingController controller, bool obscureText, Function(bool) onToggle) {
-    return TextField(
-      style: const TextStyle(color: Colors.white),
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        labelText: labelText,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
-        suffixIcon: IconButton(
-          icon: Icon(
-            obscureText ? Icons.visibility_off : Icons.visibility,
-            color: Colors.white70,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
           ),
-          onPressed: () {
-            onToggle(!obscureText);
-          },
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Colors.white),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-        ),
-        floatingLabelBehavior: FloatingLabelBehavior.auto,
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _deleteAccount();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.delete_forever, size: 18),
+                SizedBox(width: 6),
+                Text('Delete'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _saveBtn() {
-    return ElevatedButton(
-      onPressed: _saveSettings,
-      style: ElevatedButton.styleFrom(
-        shape: const StadiumBorder(),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFFFDA4AF),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-      ),
-      child: const SizedBox(
-        width: double.infinity,
-        child: Text(
-          "Save Settings",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
+  Future<void> _deleteAccount() async {
+    setState(() => _isDeleting = true);
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/delete-account/${widget.userEmail}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 10),
+                    Text('Account deleted successfully'),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            );
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+              (Route<dynamic> route) => false,
+            );
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error deleting account: $e');
+    }
+
+    if (mounted) {
+      setState(() => _isDeleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete account. Try again.')),
+      );
+    }
   }
 
-  Future<void> _saveSettings() async {
-    String email = emailController.text; // Get email from input
-    String oldPassword = oldPasswordController.text; // Get old password from input
-    String newPassword = newPasswordController.text; // Get new password from input
-    String name = nameController.text; // Get name from input
+  // ---------- Change Password ----------
+
+  Future<void> _changePassword() async {
+    final oldPass = _oldPasswordController.text.trim();
+    final newPass = _newPasswordController.text.trim();
+
+    if (oldPass.isEmpty || newPass.isEmpty) {
+      _showSnackbar('Please fill in both password fields', Colors.red);
+      return;
+    }
+    if (newPass.length < 6) {
+      _showSnackbar('New password must be at least 6 characters', Colors.red);
+      return;
+    }
+
+    setState(() => _isSaving = true);
 
     try {
       final response = await http.patch(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/update-password-or-name'), // Your API endpoint
-        headers: {"Content-Type": "application/json"},
+        Uri.parse('$_baseUrl/update-password-or-name'),
+        headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'email': email,
-          'oldPassword': oldPassword,
-          'newPassword': newPassword,
-          'name': name,
+          'email': widget.userEmail,
+          'oldPassword': oldPass,
+          'newPassword': newPass,
         }),
       );
 
-      final responseData = json.decode(response.body);
+      final data = json.decode(response.body);
 
-      if (response.statusCode == 200 && responseData['success']) {
-        _showSnackbar("Settings updated successfully", const Color(0xFFFDA4AF));
+      if (response.statusCode == 200 && data['success'] == true) {
+        _oldPasswordController.clear();
+        _newPasswordController.clear();
+        _showSnackbar('Password updated successfully', Colors.green);
       } else {
-        _showSnackbar(responseData['message'] ?? "Failed to update settings", Colors.red);
+        _showSnackbar(data['message'] ?? 'Failed to update password', Colors.red);
       }
-    } catch (error) {
-      _showSnackbar("Failed to connect to the server.", Colors.red);
+    } catch (e) {
+      _showSnackbar('Failed to connect to server', Colors.red);
     }
+
+    if (mounted) setState(() => _isSaving = false);
   }
 
   void _showSnackbar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _bg,
+      appBar: AppBar(
+        title: const Text('Settings'),
+        centerTitle: true,
+        backgroundColor: _pink,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: _pink.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.settings, color: _pinkDark, size: 48),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Anything To Change?',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // ---- Change Password Section ----
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: _pink.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.lock_outline, color: _pinkDark, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Change Password',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Old password
+                  _buildPasswordField(
+                    controller: _oldPasswordController,
+                    label: 'Current Password',
+                    obscure: _obscureOld,
+                    onToggle: () => setState(() => _obscureOld = !_obscureOld),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // New password
+                  _buildPasswordField(
+                    controller: _newPasswordController,
+                    label: 'New Password',
+                    obscure: _obscureNew,
+                    onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                  ),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _changePassword,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _pink,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.save, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Update Password',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ---- Delete Account Section ----
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.red.withOpacity(0.15)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _isDeleting ? null : _showDeleteConfirmation,
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.red.withOpacity(0.2)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.person_remove,
+                                color: Colors.red,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Delete Account',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Permanently remove your account and all data',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            _isDeleting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.red,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Icon(Icons.arrow_forward_ios,
+                                    size: 16, color: Colors.red[300]),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscure,
+    required VoidCallback onToggle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[500],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _pink.withOpacity(0.4)),
+          ),
+          child: TextField(
+            controller: controller,
+            obscureText: obscure,
+            style: const TextStyle(fontSize: 15, color: Color(0xFF1F2937)),
+            decoration: InputDecoration(
+              prefixIcon:
+                  Icon(Icons.lock_outline, size: 20, color: _pinkDark),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  obscure ? Icons.visibility_off : Icons.visibility,
+                  size: 20,
+                  color: Colors.grey[400],
+                ),
+                onPressed: onToggle,
+              ),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto, UpdateProfileDto } from './dto/update-user.dto';
 import { Response } from 'express';
 // import { Roles } from 'src/shared/middleware/role.decorators';
 import { userTypes } from 'src/shared/schema/users';
@@ -174,6 +174,43 @@ export class UsersController {
     }
   }
 
+  @Get('/profile/:email')
+  async getUserByEmail(@Param('email') email: string) {
+    try {
+      return await this.usersService.getUserByEmail(email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Patch('/update-profile')
+  async updateProfile(@Body() updateProfileDto: UpdateProfileDto) {
+    try {
+      return await this.usersService.updateProfile(
+        updateProfileDto.email,
+        {
+          name: updateProfileDto.name,
+          username: updateProfileDto.username,
+          phone: updateProfileDto.phone,
+        },
+      );
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Patch('/update-password-or-name')
   async update(@Body() updateUserDto: UpdateUserDto) {
     try {
@@ -238,8 +275,18 @@ export class UsersController {
     }
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Delete('delete-account/:email')
+  async deleteAccount(@Param('email') email: string) {
+    try {
+      return await this.usersService.deleteAccountByEmail(email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
