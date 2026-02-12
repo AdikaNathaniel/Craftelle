@@ -11,6 +11,8 @@ import 'orders-page.dart';
 import 'profile-page.dart';
 import 'support-page.dart';
 import 'settings-page.dart';
+import 'notifications-page.dart';
+import 'order-history-page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   final String userEmail;
@@ -175,6 +177,34 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         userEmail: widget.userEmail,
                         userRole: 'Customer',
                       ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.notifications_outlined, color: Color(0xFFFDA4AF)),
+                title: const Text('Notifications'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const NotificationsPage(userRole: 'Customer'),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.history, color: Color(0xFFFDA4AF)),
+                title: const Text('Order History'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          OrderHistoryPage(customerEmail: widget.userEmail),
                     ),
                   );
                 },

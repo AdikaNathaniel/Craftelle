@@ -21,6 +21,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  final Set<String> _selectedSizes = {};
+
   @override
   void initState() {
     super.initState();
@@ -194,15 +196,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                           ),
                           const SizedBox(height: 16),
 
-                          // Size Cards
+                          // Size Cards (selectable)
                           if (sizePrices['small'] != null)
-                            _buildSizeCard('Small', sizePrices['small'], Icons.crop_square),
+                            _buildSizeCard('Small', 'small', sizePrices['small'], Icons.crop_square),
                           if (sizePrices['medium'] != null)
-                            _buildSizeCard('Medium', sizePrices['medium'], Icons.crop_din),
+                            _buildSizeCard('Medium', 'medium', sizePrices['medium'], Icons.crop_din),
                           if (sizePrices['large'] != null)
-                            _buildSizeCard('Large', sizePrices['large'], Icons.crop_landscape),
+                            _buildSizeCard('Large', 'large', sizePrices['large'], Icons.crop_landscape),
                           if (sizePrices['extraLarge'] != null)
-                            _buildSizeCard('Extra Large', sizePrices['extraLarge'], Icons.crop_free),
+                            _buildSizeCard('Extra Large', 'extraLarge', sizePrices['extraLarge'], Icons.crop_free),
                         ] else if (widget.product['basePrice'] != null) ...[
                           const Text(
                             'Price',
@@ -285,66 +287,82 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     );
   }
 
-  Widget _buildSizeCard(String size, dynamic price, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFDA4AF), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFDA4AF).withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+  Widget _buildSizeCard(String displayName, String sizeKey, dynamic price, IconData icon) {
+    final bool isSelected = _selectedSizes.contains(sizeKey);
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _selectedSizes.remove(sizeKey);
+          } else {
+            _selectedSizes.add(sizeKey);
+          }
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFFDA4AF).withOpacity(0.08) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFFDA4AF),
+            width: isSelected ? 2.5 : 2,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDA4AF).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFDA4AF).withOpacity(isSelected ? 0.2 : 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(
-              icon,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDA4AF).withOpacity(isSelected ? 0.2 : 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFFFDA4AF),
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'GHS ${NumberFormat('#,##0').format(price)}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFDA4AF),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.check_circle : Icons.circle_outlined,
               color: const Color(0xFFFDA4AF),
               size: 28,
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  size,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'GHS ${NumberFormat('#,##0').format(price)}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFDA4AF),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(
-            Icons.shopping_bag_outlined,
-            color: Color(0xFFFDA4AF),
-            size: 28,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -354,7 +372,45 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     final sizePrices = widget.product['sizePrices'];
 
     if (hasSizes && sizePrices != null) {
-      _showSizeSelectionDialog(sizePrices);
+      if (_selectedSizes.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Please select at least one size'),
+              ],
+            ),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      int addedCount = 0;
+      for (final sizeKey in _selectedSizes) {
+        final price = sizePrices[sizeKey];
+        if (price != null) {
+          final item = BasketItem(
+            productId: widget.product['_id'] ?? '',
+            productName: widget.product['name'] ?? '',
+            imageUrl: widget.product['imageUrl'] ?? '',
+            selectedSize: sizeKey,
+            price: (price as num).toDouble(),
+            sellerName: widget.product['sellerName'] ?? '',
+            sellerEmail: widget.product['sellerEmail'] ?? '',
+          );
+          BasketService().addItem(item);
+          addedCount++;
+        }
+      }
+
+      setState(() => _selectedSizes.clear());
+      _showAddedSnackbar(count: addedCount);
     } else {
       final item = BasketItem(
         productId: widget.product['_id'] ?? '',
@@ -370,104 +426,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     }
   }
 
-  void _showSizeSelectionDialog(Map<String, dynamic> sizePrices) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFDA4AF).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.shopping_basket, color: Color(0xFFFDA4AF), size: 32),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Select Size',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                widget.product['name'] ?? '',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              if (sizePrices['small'] != null)
-                _buildSizeOption('Small', 'small', sizePrices['small'], ctx),
-              if (sizePrices['medium'] != null)
-                _buildSizeOption('Medium', 'medium', sizePrices['medium'], ctx),
-              if (sizePrices['large'] != null)
-                _buildSizeOption('Large', 'large', sizePrices['large'], ctx),
-              if (sizePrices['extraLarge'] != null)
-                _buildSizeOption('Extra Large', 'extraLarge', sizePrices['extraLarge'], ctx),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSizeOption(String displayName, String sizeKey, dynamic price, BuildContext dialogContext) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(dialogContext);
-        final item = BasketItem(
-          productId: widget.product['_id'] ?? '',
-          productName: widget.product['name'] ?? '',
-          imageUrl: widget.product['imageUrl'] ?? '',
-          selectedSize: sizeKey,
-          price: (price as num).toDouble(),
-          sellerName: widget.product['sellerName'] ?? '',
-          sellerEmail: widget.product['sellerEmail'] ?? '',
-        );
-        BasketService().addItem(item);
-        _showAddedSnackbar();
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFFDA4AF), width: 1.5),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              displayName,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            Text(
-              'GHS ${NumberFormat('#,##0').format(price)}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFFDA4AF),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAddedSnackbar() {
+  void _showAddedSnackbar({int count = 1}) {
+    final message = count > 1
+        ? '$count items added to Basket!'
+        : 'Added to Basket!';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Row(
+        content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 12),
-            Text('Added to Basket!'),
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(message),
           ],
         ),
         backgroundColor: const Color(0xFFFDA4AF),

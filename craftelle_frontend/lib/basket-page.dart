@@ -61,12 +61,6 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (items.isNotEmpty) ...[
-                        _buildSectionHeader(
-                          'Your Basket',
-                          Icons.shopping_basket,
-                          items.length,
-                        ),
-                        const SizedBox(height: 12),
                         ...items.map((item) => _buildBasketItemCard(item)),
                         const SizedBox(height: 12),
                         _buildTotalRow(),
@@ -409,21 +403,6 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
             ),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '$count ${count == 1 ? 'item' : 'items'}',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
         ],
       ),
     );

@@ -7,6 +7,7 @@ import 'users_summary.dart';
 import 'chat-contacts.dart';
 import 'profile-page.dart';
 import 'settings-page.dart';
+import 'notifications-page.dart';
 
 class AdminHomePage extends StatefulWidget {
   final String userEmail;
@@ -132,6 +133,22 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     MaterialPageRoute(
                       builder: (context) =>
                           SettingsPage(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+
+              // Notifications
+              ListTile(
+                leading: const Icon(Icons.notifications_outlined, color: _pink),
+                title: const Text('Notifications'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const NotificationsPage(userRole: 'Admin'),
                     ),
                   );
                 },

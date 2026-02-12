@@ -9,6 +9,7 @@ import 'seller-orders-page.dart';
 import 'profile-page.dart';
 import 'settings-page.dart';
 import 'support-page.dart';
+import 'notifications-page.dart';
 
 class SellerHomePage extends StatefulWidget {
   final String userEmail;
@@ -151,6 +152,22 @@ class _SellerHomePageState extends State<SellerHomePage> {
                         userEmail: widget.userEmail,
                         userRole: 'Seller',
                       ),
+                    ),
+                  );
+                },
+              ),
+
+              // Notifications
+              ListTile(
+                leading: const Icon(Icons.notifications_outlined, color: _pink),
+                title: const Text('Notifications'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const NotificationsPage(userRole: 'Seller'),
                     ),
                   );
                 },
