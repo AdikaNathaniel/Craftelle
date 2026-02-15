@@ -27,59 +27,75 @@ class PushNotificationService {
   static const _channelDescription = 'Notifications from Craftelle';
 
   Future<void> init(String userRole) async {
+    debugPrint('FCM init called for role: $userRole (initialized=$_initialized, currentRole=$_currentRole)');
     if (_initialized && _currentRole == userRole) return;
 
-    // Unsubscribe from old topic if switching roles
-    if (_currentRole.isNotEmpty && _currentRole != userRole) {
-      await _fcm.unsubscribeFromTopic('role_$_currentRole');
+    try {
+      // Unsubscribe from old topic if switching roles
+      if (_currentRole.isNotEmpty && _currentRole != userRole) {
+        await _fcm.unsubscribeFromTopic('role_$_currentRole');
+      }
+
+      _currentRole = userRole;
+
+      // Request permission
+      final settings = await _fcm.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+
+      debugPrint('FCM permission status: ${settings.authorizationStatus}');
+
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        debugPrint('Push notification permission denied');
+        return;
+      }
+
+      // Set up local notifications for foreground display
+      await _setupLocalNotifications();
+      debugPrint('FCM local notifications set up');
+
+      // Get FCM token for debugging
+      final token = await _fcm.getToken();
+      debugPrint('FCM token: ${token?.substring(0, 20)}...');
+
+      // Subscribe to role-based topic
+      await _fcm.subscribeToTopic('role_$userRole');
+      debugPrint('FCM subscribed to topic: role_$userRole');
+
+      // Set up background handler
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+      // Foreground messages — show local notification banner
+      FirebaseMessaging.onMessage.listen((message) {
+        debugPrint('FCM foreground message received: ${message.notification?.title}');
+        _handleForegroundMessage(message);
+      });
+
+      // Notification tap when app is in background
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
+      // Notification tap when app was terminated
+      final initialMessage = await _fcm.getInitialMessage();
+      if (initialMessage != null) {
+        _handleNotificationTap(initialMessage);
+      }
+
+      // Set foreground notification presentation options (iOS)
+      await _fcm.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      _initialized = true;
+      debugPrint('Push notification service initialized for role: $userRole');
+    } catch (e, stack) {
+      debugPrint('FCM init ERROR: $e');
+      debugPrint('FCM init stack: $stack');
     }
-
-    _currentRole = userRole;
-
-    // Request permission
-    final settings = await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
-
-    if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      debugPrint('Push notification permission denied');
-      return;
-    }
-
-    // Set up local notifications for foreground display
-    await _setupLocalNotifications();
-
-    // Subscribe to role-based topic
-    await _fcm.subscribeToTopic('role_$userRole');
-    debugPrint('Subscribed to FCM topic: role_$userRole');
-
-    // Set up background handler
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    // Foreground messages — show local notification banner
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-
-    // Notification tap when app is in background
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
-
-    // Notification tap when app was terminated
-    final initialMessage = await _fcm.getInitialMessage();
-    if (initialMessage != null) {
-      _handleNotificationTap(initialMessage);
-    }
-
-    // Set foreground notification presentation options (iOS)
-    await _fcm.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    _initialized = true;
-    debugPrint('Push notification service initialized for role: $userRole');
   }
 
   Future<void> _setupLocalNotifications() async {
