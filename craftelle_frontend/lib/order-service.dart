@@ -78,6 +78,8 @@ class Order {
   final String deliveryCity;
   final String deliveryRegion;
   final String deliveryAddress;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   final String customerPhone;
   final String paymentStatus;
   final String paymentReference;
@@ -93,6 +95,8 @@ class Order {
     this.deliveryCity = '',
     this.deliveryRegion = '',
     this.deliveryAddress = '',
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     this.customerPhone = '',
     this.paymentStatus = 'Pending',
     this.paymentReference = '',
@@ -109,6 +113,8 @@ class Order {
         'deliveryCity': deliveryCity,
         'deliveryRegion': deliveryRegion,
         'deliveryAddress': deliveryAddress,
+        'deliveryLatitude': deliveryLatitude,
+        'deliveryLongitude': deliveryLongitude,
         'customerPhone': customerPhone,
         'paymentStatus': paymentStatus,
         'paymentReference': paymentReference,
@@ -129,6 +135,8 @@ class Order {
         deliveryCity: json['deliveryCity'] ?? '',
         deliveryRegion: json['deliveryRegion'] ?? '',
         deliveryAddress: json['deliveryAddress'] ?? '',
+        deliveryLatitude: (json['deliveryLatitude'] as num?)?.toDouble(),
+        deliveryLongitude: (json['deliveryLongitude'] as num?)?.toDouble(),
         customerPhone: json['customerPhone'] ?? '',
         paymentStatus: json['paymentStatus'] ?? 'Pending',
         paymentReference: json['paymentReference'] ?? '',
@@ -198,6 +206,8 @@ class OrderService {
     String deliveryRegion = '',
     String deliveryAddress = '',
     String customerPhone = '',
+    double? deliveryLatitude,
+    double? deliveryLongitude,
     String paymentReference = '',
     String paymentStatus = 'Pending',
   }) async {
@@ -218,6 +228,8 @@ class OrderService {
           'deliveryCity': deliveryCity,
           'deliveryRegion': deliveryRegion,
           'deliveryAddress': deliveryAddress,
+          'deliveryLatitude': deliveryLatitude,
+          'deliveryLongitude': deliveryLongitude,
           'customerPhone': customerPhone,
           'paymentStatus': paymentStatus,
           'paymentReference': paymentReference,
@@ -248,6 +260,8 @@ class OrderService {
       deliveryCity: deliveryCity,
       deliveryRegion: deliveryRegion,
       deliveryAddress: deliveryAddress,
+      deliveryLatitude: deliveryLatitude,
+      deliveryLongitude: deliveryLongitude,
       customerPhone: customerPhone,
       paymentStatus: paymentStatus,
       paymentReference: paymentReference,

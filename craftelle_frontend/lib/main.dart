@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'push-notification-service.dart';
 import 'login_page.dart';
 import 'splash-screen.dart';
 
@@ -19,11 +22,21 @@ const MaterialColor roseColor = MaterialColor(0xFFFDA4AF, <int, Color>{
   900: Color(0xFFFECDD3),
 });
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables
   await dotenv.load(fileName: ".env");
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Set navigator key for push notification tap handling
+  PushNotificationService.navigatorKey = navigatorKey;
 
   runApp(const MyApp());
 
@@ -39,6 +52,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Craftelle',
       theme: ThemeData(

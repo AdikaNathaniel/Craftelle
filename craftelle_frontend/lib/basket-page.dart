@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:convert';
 import 'basket-service.dart';
 import 'order-service.dart';
 import 'payment-page.dart';
+import 'location-picker-page.dart';
 
 class BasketPage extends StatefulWidget {
   final VoidCallback? onOrderPlaced;
@@ -165,20 +169,42 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
     );
   }
 
-  void _showDeliveryDialog() {
-    final cityController = TextEditingController();
-    final regionController = TextEditingController();
-    final addressController = TextEditingController();
+  void _showDeliveryDialog() async {
+    // Fetch user's saved location
+    String savedAddress = '';
+    double? savedLat;
+    double? savedLng;
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/profile/${widget.customerEmail}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['result'] != null) {
+          savedAddress = (data['result']['savedAddress'] ?? '').toString();
+          savedLat = (data['result']['savedLatitude'] as num?)?.toDouble();
+          savedLng = (data['result']['savedLongitude'] as num?)?.toDouble();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching user profile: $e');
+    }
+
+    if (!mounted) return;
+
     final phoneController = TextEditingController();
+    SelectedLocation? selectedLocation;
+    bool useMyLocation = false;
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          width: double.infinity,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -205,23 +231,171 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                   const SizedBox(height: 6),
                   Text(
                     'Where should we deliver your order?',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                   ),
                   const SizedBox(height: 22),
-                  _buildDeliveryField(cityController, 'City', Icons.location_city),
-                  const SizedBox(height: 14),
-                  _buildDeliveryField(regionController, 'Region', Icons.map),
-                  const SizedBox(height: 14),
-                  _buildDeliveryField(
-                      addressController, 'Address / Landmark', Icons.place,
-                      maxLines: 2),
-                  const SizedBox(height: 14),
-                  _buildDeliveryField(
-                      phoneController, 'Phone Number', Icons.phone,
-                      keyboardType: TextInputType.phone),
+
+                  // Option 1: Use My Location
+                  if (savedAddress.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        setDialogState(() {
+                          useMyLocation = true;
+                          selectedLocation = null;
+                        });
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: useMyLocation ? _pink.withOpacity(0.1) : Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: useMyLocation ? _pinkDark : _pink.withOpacity(0.3),
+                            width: useMyLocation ? 2 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              useMyLocation ? Icons.radio_button_checked : Icons.radio_button_off,
+                              color: useMyLocation ? _pinkDark : Colors.grey,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Use My Location',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: Color(0xFF1F2937),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    savedAddress,
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  if (savedAddress.isNotEmpty) const SizedBox(height: 12),
+
+                  // Option 2: Choose Different Location
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push<SelectedLocation>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LocationPickerPage(
+                            title: 'Select Delivery Location',
+                          ),
+                        ),
+                      );
+                      if (result != null) {
+                        setDialogState(() {
+                          selectedLocation = result;
+                          useMyLocation = false;
+                        });
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: (selectedLocation != null && !useMyLocation)
+                            ? _pink.withOpacity(0.1)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: (selectedLocation != null && !useMyLocation)
+                              ? _pinkDark
+                              : _pink.withOpacity(0.3),
+                          width: (selectedLocation != null && !useMyLocation) ? 2 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            (selectedLocation != null && !useMyLocation)
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: (selectedLocation != null && !useMyLocation)
+                                ? _pinkDark
+                                : Colors.grey,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  selectedLocation != null && !useMyLocation
+                                      ? 'Selected Location'
+                                      : 'Choose Different Location',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Color(0xFF1F2937),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  selectedLocation != null && !useMyLocation
+                                      ? selectedLocation!.address
+                                      : 'Pick a location on the map',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.map_outlined, color: _pinkDark, size: 22),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Phone number field
+                  TextField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      hintText: 'Phone Number',
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      prefixIcon: const Icon(Icons.phone, color: _pink, size: 20),
+                      filled: true,
+                      fillColor: _bg,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _pink.withOpacity(0.3)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: _pink.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _pink, width: 2),
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 26),
                   Row(
                     children: [
@@ -232,8 +406,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           child: Text('Cancel',
-                              style: TextStyle(
-                                  color: Colors.grey[600], fontSize: 15)),
+                              style: TextStyle(color: Colors.grey[600], fontSize: 15)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -241,16 +414,38 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                         flex: 2,
                         child: ElevatedButton(
                           onPressed: () {
-                            if (cityController.text.trim().isEmpty ||
-                                regionController.text.trim().isEmpty ||
-                                phoneController.text.trim().isEmpty) {
+                            if (phoneController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Please fill in City, Region and Phone')),
+                                const SnackBar(content: Text('Please enter a phone number')),
                               );
                               return;
                             }
+                            if (!useMyLocation && selectedLocation == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please select a delivery location')),
+                              );
+                              return;
+                            }
+
+                            String city, region, address;
+                            double? lat, lng;
+
+                            if (useMyLocation) {
+                              address = savedAddress;
+                              lat = savedLat;
+                              lng = savedLng;
+                              // Parse city/region from saved address
+                              final parts = savedAddress.split(', ');
+                              city = parts.length >= 2 ? parts[parts.length - 2] : '';
+                              region = parts.isNotEmpty ? parts.last : '';
+                            } else {
+                              city = selectedLocation!.city;
+                              region = selectedLocation!.region;
+                              address = selectedLocation!.address;
+                              lat = selectedLocation!.latitude;
+                              lng = selectedLocation!.longitude;
+                            }
+
                             Navigator.pop(ctx);
                             Navigator.push(
                               context,
@@ -259,11 +454,12 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                                   basketItems: _basket.items,
                                   wishList: _basket.wishList,
                                   totalPrice: _basket.totalPrice,
-                                  deliveryCity: cityController.text.trim(),
-                                  deliveryRegion: regionController.text.trim(),
-                                  deliveryAddress:
-                                      addressController.text.trim(),
+                                  deliveryCity: city,
+                                  deliveryRegion: region,
+                                  deliveryAddress: address,
                                   customerPhone: phoneController.text.trim(),
+                                  deliveryLatitude: lat,
+                                  deliveryLongitude: lng,
                                   onPaymentConfirmed: () async {
                                     await _basket.clearBasket();
                                     await _basket.clearWishList();
@@ -283,8 +479,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(12)),
                           ),
                           child: const Text('Continue to Payment',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 15)),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                         ),
                       ),
                     ],
@@ -293,35 +488,6 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeliveryField(
-      TextEditingController controller, String hint, IconData icon,
-      {int maxLines = 1, TextInputType? keyboardType}) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[400]),
-        prefixIcon: Icon(icon, color: _pink, size: 20),
-        filled: true,
-        fillColor: _bg,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: _pink.withOpacity(0.3)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: _pink.withOpacity(0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: _pink, width: 2),
         ),
       ),
     );

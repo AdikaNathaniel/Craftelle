@@ -305,6 +305,9 @@ export class UsersService {
           email: user.email,
           phone: user.phone,
           type: user.type,
+          savedAddress: user.savedAddress || '',
+          savedLatitude: user.savedLatitude || null,
+          savedLongitude: user.savedLongitude || null,
         },
       };
     } catch (error) {
@@ -312,17 +315,20 @@ export class UsersService {
     }
   }
 
-  async updateProfile(email: string, data: { name?: string; username?: string; phone?: string }) {
+  async updateProfile(email: string, data: { name?: string; username?: string; phone?: string; savedAddress?: string; savedLatitude?: number; savedLongitude?: number }) {
     try {
       const user = await this.userDB.findOne({ email });
       if (!user) {
         throw new Error('User not found');
       }
 
-      const updateData: Record<string, string> = {};
+      const updateData: Record<string, any> = {};
       if (data.name) updateData.name = data.name;
       if (data.username) updateData.username = data.username;
       if (data.phone) updateData.phone = data.phone;
+      if (data.savedAddress !== undefined) updateData.savedAddress = data.savedAddress;
+      if (data.savedLatitude !== undefined) updateData.savedLatitude = data.savedLatitude;
+      if (data.savedLongitude !== undefined) updateData.savedLongitude = data.savedLongitude;
 
       if (Object.keys(updateData).length === 0) {
         throw new Error('No fields to update');
@@ -342,6 +348,9 @@ export class UsersService {
           email: updated.email,
           phone: updated.phone,
           type: updated.type,
+          savedAddress: updated.savedAddress || '',
+          savedLatitude: updated.savedLatitude || null,
+          savedLongitude: updated.savedLongitude || null,
         },
       };
     } catch (error) {

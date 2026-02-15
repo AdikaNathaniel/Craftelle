@@ -12,6 +12,7 @@ import cookieParser from 'cookie-parser';
 import { raw } from 'express';
 import express from 'express';
 import { join } from 'path';
+import * as admin from 'firebase-admin';
 
 // Import SearchService class directly
 import { SearchService } from './search/search.service';
@@ -602,6 +603,28 @@ export const handler = async (req: any, res: any) => {
 async function bootstrap() {
   try {
     logger.log('=== BOOTSTRAP STARTING ===');
+
+    // Initialize Firebase Admin for FCM push notifications
+    const firebaseCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (firebaseCredentials) {
+      try {
+        const serviceAccount = JSON.parse(
+          Buffer.from(firebaseCredentials, 'base64').toString('utf8'),
+        );
+        if (!admin.apps.length) {
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+          });
+          logger.log('✓ Firebase Admin initialized for push notifications');
+        }
+      } catch (fbError) {
+        logger.warn(`⚠ Firebase Admin initialization failed: ${fbError.message}`);
+        logger.warn('⚠ Push notifications will not be sent');
+      }
+    } else {
+      logger.warn('⚠ FIREBASE_SERVICE_ACCOUNT not set, push notifications disabled');
+    }
+
     const appManager = new ApplicationManager();
     await appManager.initialize();
     logger.log('=== BOOTSTRAP COMPLETED SUCCESSFULLY ===');

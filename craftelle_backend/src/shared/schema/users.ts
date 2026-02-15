@@ -57,6 +57,15 @@ export class Users extends Document {
 
   @Prop({ default: null })
   lockUntil: Date | null;
+
+  @Prop({ default: '' })
+  savedAddress: string;
+
+  @Prop({ default: null })
+  savedLatitude: number | null;
+
+  @Prop({ default: null })
+  savedLongitude: number | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);

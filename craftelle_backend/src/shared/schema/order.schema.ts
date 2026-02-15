@@ -52,6 +52,12 @@ export class Order {
   @Prop({ default: '' })
   deliveryAddress: string;
 
+  @Prop({ default: null })
+  deliveryLatitude: number | null;
+
+  @Prop({ default: null })
+  deliveryLongitude: number | null;
+
   @Prop({ default: '' })
   customerPhone: string;
 

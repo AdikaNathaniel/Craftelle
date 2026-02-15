@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
+import 'location-picker-page.dart';
 
 class ProfilePage extends StatefulWidget {
   final String userEmail;
@@ -26,6 +28,9 @@ class _ProfilePageState extends State<ProfilePage> {
   String _email = '';
   String _phone = '';
   String _type = '';
+  String _savedAddress = '';
+  double? _savedLatitude;
+  double? _savedLongitude;
 
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
@@ -65,6 +70,9 @@ class _ProfilePageState extends State<ProfilePage> {
             _email = user['email'] ?? '';
             _phone = user['phone'] ?? '';
             _type = user['type'] ?? '';
+            _savedAddress = user['savedAddress'] ?? '';
+            _savedLatitude = (user['savedLatitude'] as num?)?.toDouble();
+            _savedLongitude = (user['savedLongitude'] as num?)?.toDouble();
             _nameController.text = _name;
             _usernameController.text = _username;
             _phoneController.text = _phone;
@@ -162,6 +170,65 @@ class _ProfilePageState extends State<ProfilePage> {
       _phoneController.text = _phone;
     }
     setState(() => _isEditing = !_isEditing);
+  }
+
+  Future<void> _updateLocation() async {
+    final result = await Navigator.push<SelectedLocation>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerPage(
+          title: _savedAddress.isNotEmpty ? 'Update Your Location' : 'Set Your Location',
+          initialPosition: _savedLatitude != null && _savedLongitude != null
+              ? LatLng(_savedLatitude!, _savedLongitude!)
+              : null,
+        ),
+      ),
+    );
+    if (result != null && mounted) {
+      try {
+        final response = await http.patch(
+          Uri.parse('$_baseUrl/update-profile'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'email': _email,
+            'savedAddress': result.address,
+            'savedLatitude': result.latitude,
+            'savedLongitude': result.longitude,
+          }),
+        );
+        if (response.statusCode == 200) {
+          setState(() {
+            _savedAddress = result.address;
+            _savedLatitude = result.latitude;
+            _savedLongitude = result.longitude;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 10),
+                    Text('Location updated successfully'),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Error updating location: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update location')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -314,6 +381,26 @@ class _ProfilePageState extends State<ProfilePage> {
                           value: _type,
                           editable: false,
                         ),
+
+                        const SizedBox(height: 16),
+                        _buildField(
+                          icon: Icons.location_on_outlined,
+                          label: 'Delivery Location',
+                          value: _savedAddress.isNotEmpty ? _savedAddress : 'Not set',
+                          editable: false,
+                        ),
+                        if (!_isEditing)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: TextButton.icon(
+                              onPressed: _updateLocation,
+                              icon: const Icon(Icons.edit_location_alt, color: _pinkDark, size: 18),
+                              label: Text(
+                                _savedAddress.isNotEmpty ? 'Change Location' : 'Set Location',
+                                style: const TextStyle(color: _pinkDark, fontSize: 13),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

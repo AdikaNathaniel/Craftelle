@@ -14,6 +14,8 @@ class PaymentPage extends StatefulWidget {
   final String deliveryRegion;
   final String deliveryAddress;
   final String customerPhone;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   final VoidCallback onPaymentConfirmed;
 
   const PaymentPage({
@@ -25,6 +27,8 @@ class PaymentPage extends StatefulWidget {
     required this.deliveryRegion,
     required this.deliveryAddress,
     required this.customerPhone,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     required this.onPaymentConfirmed,
   }) : super(key: key);
 
@@ -136,6 +140,8 @@ class _PaymentPageState extends State<PaymentPage> {
         deliveryRegion: widget.deliveryRegion,
         deliveryAddress: widget.deliveryAddress,
         customerPhone: widget.customerPhone,
+        deliveryLatitude: widget.deliveryLatitude,
+        deliveryLongitude: widget.deliveryLongitude,
         paymentReference: paymentReference,
         paymentStatus: 'Paid',
       );

@@ -80,6 +80,7 @@ dependencies:
   country_codes: ^3.3.0
   flutter_blue_plus: ^1.32.11 
   lottie: ^3.3.1
+  flutter_local_notifications: ^20.1.0
   # libphonenumber: ^2.0.2
   
 

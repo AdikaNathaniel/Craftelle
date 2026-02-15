@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'collections-page.dart';
 import 'login_page.dart';
+import 'location-picker-page.dart';
 import 'chat-contacts.dart';
 import 'gallery-page.dart';
 import 'basket-service.dart';
@@ -48,6 +50,99 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       const GalleryPage(),
       _ContactUsPage(),
     ];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUserLocation();
+    });
+  }
+
+  Future<void> _checkUserLocation() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/profile/${widget.userEmail}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['result'] != null) {
+          final savedAddress = data['result']['savedAddress'] ?? '';
+          if (savedAddress.toString().isEmpty && mounted) {
+            _showLocationSetupPrompt();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking user location: $e');
+    }
+  }
+
+  void _showLocationSetupPrompt() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.location_on, color: Color(0xFFFDA4AF)),
+            SizedBox(width: 8),
+            Expanded(child: Text('Set Your Location', style: TextStyle(fontSize: 18))),
+          ],
+        ),
+        content: const Text(
+          'Set your delivery location so you can easily checkout later.',
+          style: TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final result = await Navigator.push<SelectedLocation>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LocationPickerPage(title: 'Set Your Location'),
+                ),
+              );
+              if (result != null) {
+                _saveUserLocation(result);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFDA4AF),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Set Now', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveUserLocation(SelectedLocation location) async {
+    try {
+      await http.patch(
+        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/update-profile'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': widget.userEmail,
+          'savedAddress': location.address,
+          'savedLatitude': location.latitude,
+          'savedLongitude': location.longitude,
+        }),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location saved successfully')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error saving location: $e');
+    }
   }
 
   @override

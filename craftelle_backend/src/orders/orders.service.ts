@@ -50,6 +50,8 @@ export class OrderService {
         deliveryCity: createOrderDto.deliveryCity || '',
         deliveryRegion: createOrderDto.deliveryRegion || '',
         deliveryAddress: createOrderDto.deliveryAddress || '',
+        deliveryLatitude: createOrderDto.deliveryLatitude || null,
+        deliveryLongitude: createOrderDto.deliveryLongitude || null,
         customerPhone: createOrderDto.customerPhone || '',
         paymentStatus: createOrderDto.paymentStatus || 'Pending',
         paymentReference: createOrderDto.paymentReference || '',

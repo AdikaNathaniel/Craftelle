@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'push-notification-service.dart';
 import 'predictions.dart';
 import 'register.dart';
 import 'health_metrics.dart';
@@ -323,8 +324,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _navigateBasedOnUserType(String email, String userType) {
+  void _navigateBasedOnUserType(String email, String userType) async {
     if (!mounted) return;
+
+    // Initialize push notifications for this user's role
+    await PushNotificationService().init(userType);
 
     final userTypeLower = userType.toLowerCase();
 

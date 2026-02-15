@@ -198,6 +198,9 @@ export class UsersController {
           name: updateProfileDto.name,
           username: updateProfileDto.username,
           phone: updateProfileDto.phone,
+          savedAddress: updateProfileDto.savedAddress,
+          savedLatitude: updateProfileDto.savedLatitude,
+          savedLongitude: updateProfileDto.savedLongitude,
         },
       );
     } catch (error) {

@@ -71,6 +71,14 @@ export class CreateOrderDto {
   deliveryAddress?: string;
 
   @IsOptional()
+  @IsNumber()
+  deliveryLatitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  deliveryLongitude?: number;
+
+  @IsOptional()
   @IsString()
   customerPhone?: string;
 

@@ -6,6 +6,7 @@ import { Notification } from 'src/shared/schema/notification.schema';
 import { CreateNotificationDto } from  'src/users/dto/create-notification.dto';
 import { UpdateNotificationDto } from 'src/users/dto/update-notification.dto';
 import { SmsNotificationService } from './sms-notification.service';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class NotificationService {
@@ -32,6 +33,12 @@ export class NotificationService {
       this.logger.log(`Scheduling notification for ${scheduledTime}`);
       await this.smsService.sendScheduledSms(savedNotification);
     }
+
+    // Send FCM push notification to role-based topic
+    this.sendPushNotification(
+      savedNotification.role,
+      savedNotification.message,
+    ).catch(err => this.logger.error('FCM push failed:', err));
 
     return savedNotification;
   }
@@ -86,5 +93,28 @@ export class NotificationService {
     return this.notificationModel
       .find({ isSent: false, scheduledAt: { $lte: now } })
       .exec();
+  }
+
+  private async sendPushNotification(role: string, message: string) {
+    if (!admin.apps.length) {
+      this.logger.warn('Firebase Admin not initialized, skipping push notification');
+      return;
+    }
+
+    const topic = `role_${role}`;
+    await admin.messaging().send({
+      topic,
+      notification: {
+        title: 'Craftelle',
+        body: message,
+      },
+      android: {
+        notification: {
+          channelId: 'craftelle_notifications',
+          priority: 'high' as const,
+        },
+      },
+    });
+    this.logger.log(`Push notification sent to topic: ${topic}`);
   }
 }
