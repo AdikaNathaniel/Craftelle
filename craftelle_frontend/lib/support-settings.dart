@@ -1,170 +1,250 @@
 import 'package:flutter/material.dart';
-// import 'support-list.dart'; 
-// import 'support-id.dart'; 
-// import 'support-name.dart';
-import 'support-request.dart';
-import 'support-get-id.dart';
-import 'support-get-name.dart';
-import 'account-reactivation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/services.dart';
 
-class SupportSettingsPage extends StatelessWidget {
+class SupportSettingsPage extends StatefulWidget {
   final String userEmail;
   const SupportSettingsPage({super.key, required this.userEmail});
 
-  void _onOptionSelected(BuildContext context, String option) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$option tapped')),
-    );
+  @override
+  State<SupportSettingsPage> createState() => _SupportSettingsPageState();
+}
+
+class _SupportSettingsPageState extends State<SupportSettingsPage> {
+  static const _pink = Color(0xFFFDA4AF);
+  static const _pinkDark = Color(0xFFFB7185);
+
+  List<dynamic> _requests = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSupportRequests();
   }
 
-  Widget _buildSupportCard({
-    required IconData icon,
-    required String title,
-    required Color iconColor,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: iconColor.withOpacity(0.1),
-          child: Icon(icon, color: iconColor),
-        ),
-        title: Text(
-          title, 
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-        onTap: onTap,
+  Future<void> _fetchSupportRequests() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await http.get(
+        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/support'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _requests = data['result'] ?? [];
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+    } catch (e) {
+      debugPrint('Error fetching support requests: $e');
+    }
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return '';
+    try {
+      final date = DateTime.parse(dateStr).toLocal();
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year;
+      final hour = date.hour.toString().padLeft(2, '0');
+      final minute = date.minute.toString().padLeft(2, '0');
+      return '$day/$month/$year at $hour:$minute';
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('ID copied to clipboard'),
+        backgroundColor: _pink,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Support Settings'),
-      //   centerTitle: true,
-      //   backgroundColor: Colors.deepPurple,
-      //   foregroundColor: Colors.white,
-      // ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Display admin email at the top
-            // Container(
-            //   margin: const EdgeInsets.all(16),
-            //   padding: const EdgeInsets.all(16),
-            //   decoration: BoxDecoration(
-            //     color: Colors.deepPurple.withOpacity(0.1),
-            //     borderRadius: BorderRadius.circular(12),
-            //     border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
-            //   ),
-            //   // child: Row(
-            //   //   children: [
-            //   //     const Icon(Icons.admin_panel_settings, color: Colors.deepPurple),
-            //   //     const SizedBox(width: 10),
-            //   //     Expanded(
-            //   //       child: Text(
-            //   //         'Admin: $userEmail',
-            //   //         style: const TextStyle(
-            //   //           fontSize: 16, 
-            //   //           fontWeight: FontWeight.w600,
-            //   //           color: Colors.deepPurple,
-            //   //         ),
-            //   //       ),
-            //   //     ),
-            //   //   ],
-            //   // ),
-            // ),
+    return RefreshIndicator(
+      color: _pink,
+      onRefresh: _fetchSupportRequests,
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: _pink))
+          : _requests.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.support_agent, size: 60, color: Colors.grey[300]),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No support requests yet',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _requests.length,
+                  itemBuilder: (context, index) {
+                    return _buildRequestCard(_requests[index]);
+                  },
+                ),
+    );
+  }
 
-            const SizedBox(height: 8),
+  Widget _buildRequestCard(dynamic request) {
+    final id = request['_id'] ?? '';
+    final name = request['name'] ?? '';
+    final role = request['role'] ?? '';
+    final phone = request['phoneNumber'] ?? '';
+    final email = request['email'] ?? '';
+    final message = request['message'] ?? '';
+    final createdAt = request['createdAt']?.toString();
 
-            // Get All Support Requests
-            _buildSupportCard(
-              icon: Icons.list_alt,
-              title: 'All Support Requests',
-              iconColor: Color(0xFFFDA4AF),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SupportRequestsPage()),
-                );
-              },
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _pink.withOpacity(0.15)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with ID and copy button
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: _pink.withOpacity(0.06),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             ),
+            child: Row(
+              children: [
+                const Icon(Icons.vpn_key, color: _pinkDark, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    id,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1F2937),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => _copyToClipboard(id),
+                  child: const Icon(Icons.copy, size: 16, color: _pinkDark),
+                ),
+              ],
+            ),
+          ),
 
-             _buildSupportCard(
-  icon: Icons.find_in_page, 
-  title: 'Request By Id',
-  iconColor: Color(0xFFFDA4AF),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SupportByIdPage()),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _infoRow(Icons.person, 'Name', name),
+                if (role.isNotEmpty) _infoRow(Icons.badge, 'Role', role),
+                _infoRow(Icons.phone, 'Phone', phone),
+                _infoRow(Icons.email, 'Email', email),
+                const SizedBox(height: 8),
+                // Message section
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.message, color: _pink, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Message',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            message,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF1F2937),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Date
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 14, color: Colors.grey[400]),
+                    const SizedBox(width: 6),
+                    Text(
+                      _formatDate(createdAt),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
-  },
-),
+  }
 
- _buildSupportCard(
-  icon: Icons.lock_open,
-  title: 'Account Reactivation',
-  iconColor: Color(0xFFFDA4AF),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AccountReactivationPage()),
-    );
-  },
-),
-
- _buildSupportCard(
-  icon: Icons.receipt_long, 
-  title: 'Request By Name',
-  iconColor: Color(0xFFFDA4AF),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SupportByNamePage()),
-    );
-  },
-),
-
-
-            // Get Support by ID
-            // _buildSupportCard(
-            //   icon: Icons.numbers,
-            //   title: 'Get Support by ID',
-            //   iconColor: Color(0xFFFDA4AF),
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(builder: (context) => const SupportByIdPage()),
-            //     );
-            //   },
-            // ),
-
-            // Get Support by Name
-            // _buildSupportCard(
-            //   icon: Icons.person_search,
-            //   title: 'Get Support by Name',
-            //   iconColor: Colors.teal,
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(builder: (context) => const SupportByNamePage()),
-            //     );
-            //   },
-            // ),
-
-            const SizedBox(height: 16), // Bottom spacing
-          ],
-        ),
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(icon, color: _pink, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '$label: $value',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF374151),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

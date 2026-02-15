@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'login_page.dart';
 import 'support-settings.dart';
 import 'users_summary.dart';
-import 'chat-contacts.dart';
+import 'collections-page.dart';
 import 'profile-page.dart';
 import 'settings-page.dart';
 import 'notifications-page.dart';
@@ -24,7 +24,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
 
-  final _pageTitles = ['Users', 'Support', 'Messages'];
+  final _pageTitles = ['Users', 'Support', 'Masterpieces'];
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -232,9 +232,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
               label: 'Support',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.chat_outlined),
-              activeIcon: Icon(Icons.chat_rounded),
-              label: 'Messages',
+              icon: Icon(Icons.collections_outlined),
+              activeIcon: Icon(Icons.collections),
+              label: 'Masterpieces',
             ),
           ],
         ),
@@ -249,11 +249,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
       case 1:
         return SupportSettingsPage(userEmail: widget.userEmail);
       case 2:
-        return ChatContactsPage(
-          userEmail: widget.userEmail,
-          userName: widget.userEmail.split('@')[0],
-          userRole: 'Admin',
-        );
+        return CollectionsPage(isAdminView: true);
       default:
         return UserListPage(userEmail: widget.userEmail);
     }

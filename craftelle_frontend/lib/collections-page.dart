@@ -6,8 +6,9 @@ import 'product-detail-page.dart';
 class CollectionsPage extends StatefulWidget {
   final String? userEmail;
   final bool isSellerView;
+  final bool isAdminView;
 
-  const CollectionsPage({Key? key, this.userEmail, this.isSellerView = false}) : super(key: key);
+  const CollectionsPage({Key? key, this.userEmail, this.isSellerView = false, this.isAdminView = false}) : super(key: key);
 
   @override
   _CollectionsPageState createState() => _CollectionsPageState();
@@ -532,7 +533,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
                 MaterialPageRoute(
                   builder: (context) => ProductDetailPage(
                     product: product,
-                    isSellerView: widget.isSellerView,
+                    isSellerView: widget.isSellerView || widget.isAdminView,
                   ),
                 ),
               );
@@ -586,7 +587,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Top Row - Edit and Delete Icons
-                          if (widget.isSellerView && product['sellerEmail'] == widget.userEmail)
+                          if (widget.isAdminView || (widget.isSellerView && product['sellerEmail'] == widget.userEmail))
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'product-upload.dart';
 import 'collections-page.dart';
 import 'login_page.dart';
-import 'chat-contacts.dart';
 import 'seller-orders-page.dart';
+import 'seller-payments-page.dart';
 import 'profile-page.dart';
 import 'settings-page.dart';
 import 'support-page.dart';
@@ -26,7 +26,7 @@ class _SellerHomePageState extends State<SellerHomePage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
 
-  final _pageTitles = ['Upload Product', 'Masterpieces', 'Orders', 'Messages'];
+  final _pageTitles = ['Upload Product', 'Masterpieces', 'Orders', 'Payments'];
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -256,9 +256,9 @@ class _SellerHomePageState extends State<SellerHomePage> {
               label: 'Orders',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.chat_outlined),
-              activeIcon: Icon(Icons.chat_rounded),
-              label: 'Messages',
+              icon: Icon(Icons.payments_outlined),
+              activeIcon: Icon(Icons.payments),
+              label: 'Payments',
             ),
           ],
         ),
@@ -275,11 +275,7 @@ class _SellerHomePageState extends State<SellerHomePage> {
       case 2:
         return SellerOrdersPage(sellerEmail: widget.userEmail);
       case 3:
-        return ChatContactsPage(
-          userEmail: widget.userEmail,
-          userName: widget.userEmail.split('@')[0],
-          userRole: 'Seller',
-        );
+        return SellerPaymentsPage(sellerEmail: widget.userEmail);
       default:
         return ProductUploadPage(userEmail: widget.userEmail);
     }
