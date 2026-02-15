@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // Must be top-level function for background message handling
 @pragma('vm:entry-point')
@@ -34,28 +35,18 @@ class PushNotificationService {
       // Unsubscribe from old topic if switching roles
       if (_currentRole.isNotEmpty && _currentRole != userRole) {
         await _fcm.unsubscribeFromTopic('role_$_currentRole');
+        debugPrint('FCM unsubscribed from old topic: role_$_currentRole');
       }
 
       _currentRole = userRole;
 
-      // Request permission
-      final settings = await _fcm.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
+      // Request Android POST_NOTIFICATIONS permission explicitly
+      // (firebase_messaging's requestPermission doesn't always trigger the dialog on Android)
+      final notifPermission = await Permission.notification.request();
+      debugPrint('Android notification permission: $notifPermission');
 
-      debugPrint('FCM permission status: ${settings.authorizationStatus}');
-
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        debugPrint('Push notification permission denied');
-        return;
-      }
-
-      // Set up local notifications for foreground display
-      await _setupLocalNotifications();
-      debugPrint('FCM local notifications set up');
+      // Set up background handler
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
       // Get FCM token for debugging
       final token = await _fcm.getToken();
@@ -65,10 +56,11 @@ class PushNotificationService {
       await _fcm.subscribeToTopic('role_$userRole');
       debugPrint('FCM subscribed to topic: role_$userRole');
 
-      // Set up background handler
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      // Set up local notifications for foreground display
+      await _setupLocalNotifications();
+      debugPrint('FCM local notifications set up');
 
-      // Foreground messages — show local notification banner
+      // Set up foreground message listener
       FirebaseMessaging.onMessage.listen((message) {
         debugPrint('FCM foreground message received: ${message.notification?.title}');
         _handleForegroundMessage(message);
@@ -152,8 +144,6 @@ class PushNotificationService {
 
   void _navigateToNotifications() {
     if (navigatorKey?.currentState == null) return;
-    // Navigate to the notifications page
-    // The app is already open, so we just need to ensure we're on the right page
     debugPrint('Notification tapped — navigating to notifications');
   }
 }

@@ -24,7 +24,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   String _selectedRole = 'Customer';
   bool _isSending = false;
 
-  final _roles = ['Customer', 'Seller', 'Admin'];
+  final _roles = ['Customer', 'Seller', 'Admin', 'Analyst'];
 
   @override
   void initState() {
@@ -211,7 +211,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                           ? Icons.person
                                           : role == 'Seller'
                                               ? Icons.storefront
-                                              : Icons.admin_panel_settings,
+                                              : role == 'Analyst'
+                                                  ? Icons.analytics
+                                                  : Icons.admin_panel_settings,
                                       color: _pinkDark,
                                       size: 18,
                                     ),
