@@ -157,7 +157,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _toggleEdit() {
     if (_isEditing) {
-      // Cancel editing — reset controllers
       _nameController.text = _name;
       _usernameController.text = _username;
       _phoneController.text = _phone;
@@ -273,7 +272,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Full Name
                         _buildField(
                           icon: Icons.badge_outlined,
                           label: 'Full Name',
@@ -283,7 +281,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Username
                         _buildField(
                           icon: Icons.alternate_email,
                           label: 'Username',
@@ -293,7 +290,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Email (read-only always)
                         _buildField(
                           icon: Icons.email_outlined,
                           label: 'Email',
@@ -302,7 +298,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Phone
                         _buildField(
                           icon: Icons.phone_outlined,
                           label: 'Phone Number',
@@ -313,7 +308,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Account Type (read-only always)
                         _buildField(
                           icon: Icons.shield_outlined,
                           label: 'Account Type',

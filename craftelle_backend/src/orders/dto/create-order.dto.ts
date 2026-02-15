@@ -80,6 +80,10 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsString()
+  paymentReference?: string;
+
+  @IsOptional()
+  @IsString()
   orderStatus?: string;
 }
 

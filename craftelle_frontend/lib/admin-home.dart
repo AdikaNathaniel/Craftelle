@@ -5,6 +5,7 @@ import 'login_page.dart';
 import 'support-settings.dart';
 import 'users_summary.dart';
 import 'collections-page.dart';
+import 'admin-ratings-page.dart';
 import 'profile-page.dart';
 import 'settings-page.dart';
 import 'notifications-page.dart';
@@ -24,7 +25,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
 
-  final _pageTitles = ['Users', 'Support', 'Masterpieces'];
+  final _pageTitles = ['Users', 'Support', 'Masterpieces', 'Ratings'];
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -236,6 +237,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
               activeIcon: Icon(Icons.collections),
               label: 'Masterpieces',
             ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.star_outline_rounded),
+              activeIcon: Icon(Icons.star_rounded),
+              label: 'Ratings',
+            ),
           ],
         ),
       ),
@@ -250,6 +256,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
         return SupportSettingsPage(userEmail: widget.userEmail);
       case 2:
         return CollectionsPage(isAdminView: true);
+      case 3:
+        return const AdminRatingsPage();
       default:
         return UserListPage(userEmail: widget.userEmail);
     }

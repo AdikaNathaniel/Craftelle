@@ -80,6 +80,7 @@ class Order {
   final String deliveryAddress;
   final String customerPhone;
   final String paymentStatus;
+  final String paymentReference;
   final String orderStatus;
 
   Order({
@@ -94,6 +95,7 @@ class Order {
     this.deliveryAddress = '',
     this.customerPhone = '',
     this.paymentStatus = 'Pending',
+    this.paymentReference = '',
     this.orderStatus = 'Pending',
   });
 
@@ -109,6 +111,7 @@ class Order {
         'deliveryAddress': deliveryAddress,
         'customerPhone': customerPhone,
         'paymentStatus': paymentStatus,
+        'paymentReference': paymentReference,
         'orderStatus': orderStatus,
       };
 
@@ -128,6 +131,7 @@ class Order {
         deliveryAddress: json['deliveryAddress'] ?? '',
         customerPhone: json['customerPhone'] ?? '',
         paymentStatus: json['paymentStatus'] ?? 'Pending',
+        paymentReference: json['paymentReference'] ?? '',
         orderStatus: json['orderStatus'] ?? 'Pending',
       );
 }
@@ -146,6 +150,7 @@ class OrderService {
   String _customerEmail = '';
 
   List<Order> get orders => List.unmodifiable(_orders);
+  String get customerEmail => _customerEmail;
 
   void addListener(VoidCallback listener) => _listeners.add(listener);
   void removeListener(VoidCallback listener) => _listeners.remove(listener);
@@ -193,6 +198,8 @@ class OrderService {
     String deliveryRegion = '',
     String deliveryAddress = '',
     String customerPhone = '',
+    String paymentReference = '',
+    String paymentStatus = 'Pending',
   }) async {
     final orderItems =
         basketItems.map((e) => OrderItem.fromBasketItem(e)).toList();
@@ -212,7 +219,8 @@ class OrderService {
           'deliveryRegion': deliveryRegion,
           'deliveryAddress': deliveryAddress,
           'customerPhone': customerPhone,
-          'paymentStatus': 'Confirmed',
+          'paymentStatus': paymentStatus,
+          'paymentReference': paymentReference,
         }),
       );
 
@@ -241,7 +249,8 @@ class OrderService {
       deliveryRegion: deliveryRegion,
       deliveryAddress: deliveryAddress,
       customerPhone: customerPhone,
-      paymentStatus: 'Confirmed',
+      paymentStatus: paymentStatus,
+      paymentReference: paymentReference,
     );
     _orders.insert(0, order);
     _notifyListeners();

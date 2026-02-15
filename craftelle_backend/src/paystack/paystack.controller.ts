@@ -8,9 +8,9 @@ export class PaystackController {
 
   @Post('initiate')
   async initiatePayment(
-    @Body() body: { email: string; amount: number; channels?: string[] }
+    @Body() body: { email: string; amount: number; channels?: string[]; callbackUrl?: string; metadata?: Record<string, any> }
   ) {
-    return await this.paystackService.initializeTransaction(body.email, body.amount, body.channels);
+    return await this.paystackService.initializeTransaction(body.email, body.amount, body.channels, body.callbackUrl, body.metadata);
   }
 
   @Post('verify')

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 import 'collections-page.dart';
 import 'login_page.dart';
 import 'chat-contacts.dart';
@@ -13,6 +14,7 @@ import 'support-page.dart';
 import 'settings-page.dart';
 import 'notifications-page.dart';
 import 'order-history-page.dart';
+import 'rate-us-page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   final String userEmail;
@@ -210,6 +212,20 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.star_rate_rounded, color: Color(0xFFFDA4AF)),
+                title: const Text('Rate Us'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          RateUsPage(userEmail: widget.userEmail),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.policy_outlined, color: Color(0xFFFDA4AF)),
                 title: const Text('Payment Policy'),
                 onTap: () {
@@ -229,45 +245,24 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   'Logout',
                   style: TextStyle(color: Colors.red),
                 ),
-                onTap: () {
+                onTap: () async {
+                  final navigator = Navigator.of(context, rootNavigator: true);
                   Navigator.pop(context);
-                  _showLogoutDialog(context);
+                  try {
+                    await http.put(
+                      Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/logout'),
+                      headers: {'Content-Type': 'application/json'},
+                    );
+                  } catch (_) {}
+                  navigator.pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                    (route) => false,
+                  );
                 },
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-                (route) => false,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Logout'),
-          ),
-        ],
       ),
     );
   }

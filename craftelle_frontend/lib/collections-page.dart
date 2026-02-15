@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'product-detail-page.dart';
+import 'rating-widget.dart';
 
 class CollectionsPage extends StatefulWidget {
   final String? userEmail;
@@ -18,6 +19,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
   List<dynamic> _products = [];
   bool _isLoading = true;
   late AnimationController _animationController;
+  final Map<String, Map<String, dynamic>> _productRatings = {};
 
   @override
   void initState() {
@@ -55,6 +57,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
             _isLoading = false;
           });
           _animationController.forward();
+          _fetchProductRatings();
         }
       }
     } catch (e) {
@@ -64,6 +67,32 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading products: $e')),
       );
+    }
+  }
+
+  Future<void> _fetchProductRatings() async {
+    for (final product in _products) {
+      final productId = product['_id'];
+      if (productId == null) continue;
+      try {
+        final response = await http.get(
+          Uri.parse('https://neurosense-palsy.fly.dev/api/v1/ratings/product/$productId/average'),
+          headers: {'Content-Type': 'application/json'},
+        );
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['success'] == true && data['result'] != null) {
+            if (mounted) {
+              setState(() {
+                _productRatings[productId] = {
+                  'averageRating': (data['result']['averageRating'] ?? 0.0).toDouble(),
+                  'totalRatings': data['result']['totalRatings'] ?? 0,
+                };
+              });
+            }
+          }
+        }
+      } catch (_) {}
     }
   }
 
@@ -534,6 +563,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
                   builder: (context) => ProductDetailPage(
                     product: product,
                     isSellerView: widget.isSellerView || widget.isAdminView,
+                    userEmail: widget.userEmail,
                   ),
                 ),
               );
@@ -608,20 +638,35 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
                               ],
                             ),
 
-                          // Middle - Product Name (Centered)
+                          // Middle - Product Name + Rating (Centered)
                           Expanded(
                             child: Center(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                                child: Text(
-                                  product['name'] ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      product['name'] ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    if (_productRatings[product['_id']] != null &&
+                                        _productRatings[product['_id']]!['totalRatings'] > 0)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 6),
+                                        child: AverageRatingDisplay(
+                                          averageRating: _productRatings[product['_id']]!['averageRating'],
+                                          totalRatings: _productRatings[product['_id']]!['totalRatings'],
+                                          starSize: 15,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),

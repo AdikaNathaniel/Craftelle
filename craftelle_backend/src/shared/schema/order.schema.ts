@@ -58,6 +58,9 @@ export class Order {
   @Prop({ default: 'Pending' })
   paymentStatus: string;
 
+  @Prop({ default: '' })
+  paymentReference: string;
+
   @Prop({ default: 'Pending' })
   orderStatus: string;
 }

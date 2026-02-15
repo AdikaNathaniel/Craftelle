@@ -65,6 +65,7 @@ import { AnaemiaRiskModule } from './anemia-predictions/anaemia-risk.module';
 import { PreeclampsiaVitalsModule } from './preeclampsia/preeclampsia-vitals.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ProductUploadModule } from './product-upload/product-upload.module';
+import { RatingModule } from './rating/rating.module';
 // import {HealthAnalyticsModule} from "./health-analytics/health-analytics.module";
 // import { PreeclampsiaVitalsService } from './preeclampsia-vitals/preeclampsia-vitals.service';
 // import { PreeclampsiaVitalsController } from './preeclampsia-vitals/preeclampsia-vitals.controller';
@@ -170,6 +171,7 @@ import { OfflineReminder, OfflineReminderSchema } from 'src/shared/schema/offlin
     AnaemiaRiskModule,
     AnalyticsModule,
     ProductUploadModule,
+    RatingModule,
 
     // Schemas - Only register schemas that are used directly in THIS module's services
     // DO NOT register schemas that are already registered in their respective feature modules

@@ -8,16 +8,26 @@ export class PaystackService {
 
   constructor() {}
 
-  async initializeTransaction(email: string, amount: number, channels: string[] = []) {
+  async initializeTransaction(
+    email: string,
+    amount: number,
+    channels: string[] = [],
+    callbackUrl?: string,
+    metadata?: Record<string, any>,
+  ) {
     try {
+      const payload: Record<string, any> = {
+        email,
+        amount, // in kobo or pesewas (i.e., GHS 50.00 = 5000)
+        channels: channels.length > 0 ? channels : ['card', 'bank', 'ussd', 'mobile_money', 'qr', 'bank_transfer'],
+        currency: 'GHS',
+      };
+      if (callbackUrl) payload.callback_url = callbackUrl;
+      if (metadata) payload.metadata = metadata;
+
       const response = await axios.post(
         `${this.BASE_URL}/transaction/initialize`,
-        {
-          email,
-          amount, // in kobo or pesewas (i.e., GHS 50.00 = 5000)
-          channels: channels.length > 0 ? channels : ['card', 'bank', 'ussd', 'mobile_money', 'qr', 'bank_transfer'],
-          currency: 'GHS' // or 'NGN', 'ZAR'
-        },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
