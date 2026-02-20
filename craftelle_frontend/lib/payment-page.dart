@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'basket-service.dart';
 import 'order-service.dart';
 import 'paystack-checkout-page.dart';
+import 'craftelle-dialog.dart';
 
 class PaymentPage extends StatefulWidget {
   final List<BasketItem> basketItems;
@@ -73,8 +74,9 @@ class _PaymentPageState extends State<PaymentPage> {
       }
 
       final initData = json.decode(initResponse.body);
-      final authorizationUrl = initData['data']?['authorization_url'];
-      final reference = initData['data']?['reference'];
+      final paystackData = initData['result']?['data'] ?? initData['data'];
+      final authorizationUrl = paystackData?['authorization_url'];
+      final reference = paystackData?['reference'];
 
       if (authorizationUrl == null) {
         throw Exception('No authorization URL received');
@@ -98,7 +100,11 @@ class _PaymentPageState extends State<PaymentPage> {
       if (paymentReference == null) {
         // User cancelled the payment
         setState(() => _isLoading = false);
-        _showSnackbar('Payment cancelled', Colors.orange);
+        CraftelleDialog.showInfo(
+          context,
+          title: 'Payment Cancelled',
+          message: 'You cancelled the payment. You can try again when you\'re ready.',
+        );
         return;
       }
 
@@ -113,8 +119,9 @@ class _PaymentPageState extends State<PaymentPage> {
       }
 
       final verifyData = json.decode(verifyResponse.body);
-      final paymentStatus = verifyData['data']?['status'];
-      final paidAmountPesewas = verifyData['data']?['amount'] as int?;
+      final verifyPaystackData = verifyData['result']?['data'] ?? verifyData['data'];
+      final paymentStatus = verifyPaystackData?['status'];
+      final paidAmountPesewas = verifyPaystackData?['amount'] as int?;
       final expectedAmountPesewas = amountInPesewas;
 
       if (paymentStatus != 'success') {
@@ -149,37 +156,24 @@ class _PaymentPageState extends State<PaymentPage> {
       widget.onPaymentConfirmed();
 
       if (mounted) {
-        _showSnackbar('Payment successful! Order placed.', _pink);
-        Navigator.pop(context);
+        await CraftelleDialog.showSuccess(
+          context,
+          title: 'Payment Successful',
+          message: 'Your order has been placed successfully! You will receive a confirmation shortly.',
+          onDismiss: () => Navigator.pop(context),
+        );
       }
     } catch (e) {
       if (mounted) {
-        _showSnackbar('Error: $e', Colors.red);
+        CraftelleDialog.showError(
+          context,
+          title: 'Payment Failed',
+          message: e.toString().replaceFirst('Exception: ', ''),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  void _showSnackbar(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              color == Colors.red ? Icons.error : Icons.check_circle,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   @override

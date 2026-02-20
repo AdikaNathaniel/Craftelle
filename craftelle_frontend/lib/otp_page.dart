@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'login_page.dart';
+import 'craftelle-dialog.dart';
 
 class OTPVerificationPage extends StatefulWidget {
   final String email;
@@ -22,8 +23,10 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
 
   Future<void> verifyOTP() async {
     if (_otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a valid 6-digit OTP')),
+      CraftelleDialog.showInfo(
+        context,
+        title: 'Invalid OTP',
+        message: 'Please enter a valid 6-digit OTP code.',
       );
       return;
     }
@@ -38,62 +41,40 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       final data = json.decode(response.body);
 
       if (response.statusCode == 200 && data['message'] == "Email verified successfully. You can log in now.") {
-        showSuccessDialog();
+        if (mounted) {
+          CraftelleDialog.showSuccess(
+            context,
+            title: 'Email Verified',
+            message: 'Your email has been verified successfully. You can now log in.',
+            onDismiss: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Verification failed')),
-        );
+        if (mounted) {
+          CraftelleDialog.showError(
+            context,
+            title: 'Verification Failed',
+            message: data['message'] ?? 'Could not verify your email. Please try again.',
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again.')),
-      );
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: 'Connection Error',
+          message: 'An error occurred. Please check your internet connection and try again.',
+        );
+      }
     }
 
     setState(() {
       _isLoading = false;
-    });
-  }
-
-  void showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              "Email Verified Successfully",
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.check_circle, color: Color(0xFFFDA4AF), size: 80),
-                const SizedBox(height: 16),
-                const Text(
-                  "Your email has been verified. Redirecting to login...",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    // Redirect to login page after 1 second
-    Future.delayed(Duration(seconds: 1), () {
-      Navigator.of(context).pop(); // Close dialog
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
     });
   }
 

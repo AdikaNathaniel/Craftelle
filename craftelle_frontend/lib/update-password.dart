@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'craftelle-dialog.dart';
 
 class UpdatePasswordPage extends StatefulWidget {
   const UpdatePasswordPage({super.key});
@@ -40,93 +41,34 @@ class _UpdatePasswordPageState extends State<UpdatePasswordPage> {
         _emailController.clear();
         _oldPasswordController.clear();
         _newPasswordController.clear();
-        
-        _showSuccessDialog();
+
+        if (mounted) {
+          CraftelleDialog.showSuccess(
+            context,
+            title: 'Password Updated',
+            message: 'Your password has been successfully updated.',
+          );
+        }
       } else {
-        _showErrorSnackbar("Update failed: ${json.decode(response.body)['message'] ?? 'Server error'}");
+        final errorMsg = json.decode(response.body)['message'] ?? 'Server error';
+        if (mounted) {
+          CraftelleDialog.showError(
+            context,
+            title: 'Update Failed',
+            message: errorMsg is List ? errorMsg[0].toString() : errorMsg.toString(),
+          );
+        }
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      _showErrorSnackbar("Network error: ${e.toString()}");
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: 'Network Error',
+          message: 'Failed to connect to the server. Please check your internet connection.',
+        );
+      }
     }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFFDA4AF).withOpacity(0.2),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: Color(0xFFFDA4AF),
-                  size: 60,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Password Updated!',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFFDA4AF),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // const Text(
-              //   'Your password has been successfully updated.',
-              //   textAlign: TextAlign.center,
-              //   style: TextStyle(fontSize: 16),
-              // ),
-              // const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFDA4AF),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
   }
 
   @override

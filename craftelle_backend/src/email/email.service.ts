@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import * as path from 'path';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PDFDocument = require('pdfkit');
 
 @Injectable()
 export class EmailService {
   private transporter;
+  private readonly logoPath = path.join(__dirname, 'craftelle-logo.png');
 
   constructor() {
     console.log("SMTP Configuration:", {
@@ -14,17 +16,17 @@ export class EmailService {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS ? "******" : "NOT SET",
     });
-    
+
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT),
-      secure: false, 
+      secure: false,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
       tls: {
-        rejectUnauthorized: false // ← ADD THIS LINE
+        rejectUnauthorized: false
       },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
@@ -32,18 +34,97 @@ export class EmailService {
     });
   }
 
-  async sendOTPEmail(email: string, otp: string) {
-    const mailOptions = {
-      from: process.env.SMTP_USER,
-      to: email,
-      subject: 'Your OTP Verification Code',
-      html: `
-        <h1>OTP Verification</h1>
-        <p>Your OTP code is: <strong>${otp}</strong></p>
-        <p>This code will expire in 10 minutes.</p>
-      `,
+  /**
+   * Branded Craftelle email wrapper.
+   * Wraps any body content in the Craftelle rose/pink themed email layout.
+   */
+  private craftelleEmailTemplate(bodyContent: string): string {
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #FFF1F2; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #FFF1F2; padding: 30px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(251, 113, 133, 0.15);">
+
+          <!-- Header with logo -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #FDA4AF 0%, #FB7185 100%); padding: 32px 40px; text-align: center;">
+              <img src="cid:craftelle-logo" alt="Craftelle" width="70" height="70" style="display: block; margin: 0 auto 12px; border-radius: 50%; background: rgba(255,255,255,0.2); padding: 4px;" />
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 3px; font-weight: 700;">CRAFTELLE</h1>
+              <p style="color: rgba(255,255,255,0.85); margin: 6px 0 0; font-size: 13px; letter-spacing: 1px;">Premium Gifting Brand</p>
+            </td>
+          </tr>
+
+          <!-- Body content -->
+          <tr>
+            <td style="padding: 36px 40px;">
+              ${bodyContent}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background: #FFF1F2; padding: 24px 40px; text-align: center; border-top: 1px solid #FECDD3;">
+              <p style="color: #FB7185; font-size: 13px; font-weight: 600; margin: 0 0 6px;">Craftelle - Premium Gifting Brand</p>
+              <p style="color: #9CA3AF; font-size: 11px; margin: 0; line-height: 1.5;">
+                This is an automated email from Craftelle.<br/>
+                Please do not reply to this email.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  }
+
+  /**
+   * Returns the Craftelle logo CID attachment for use in all emails.
+   */
+  private getLogoAttachment() {
+    return {
+      filename: 'craftelle-logo.png',
+      path: this.logoPath,
+      cid: 'craftelle-logo',
     };
-    
+  }
+
+  async sendOTPEmail(email: string, otp: string) {
+    const bodyContent = `
+      <h2 style="color: #1F2937; margin: 0 0 8px; font-size: 22px;">Email Verification</h2>
+      <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+        Welcome to Craftelle! Please use the verification code below to activate your account.
+      </p>
+
+      <div style="background: linear-gradient(135deg, #FFF1F2 0%, #FECDD3 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 0 0 24px;">
+        <p style="color: #6B7280; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 8px;">Your OTP Code</p>
+        <p style="color: #FB7185; font-size: 36px; font-weight: 700; letter-spacing: 8px; margin: 0;">${otp}</p>
+      </div>
+
+      <div style="background: #F9FAFB; border-radius: 8px; padding: 14px 18px; margin: 0 0 16px;">
+        <p style="color: #6B7280; font-size: 13px; margin: 0; line-height: 1.5;">
+          <strong style="color: #1F2937;">Note:</strong> This code will expire in <strong>10 minutes</strong>. If you didn't create a Craftelle account, you can safely ignore this email.
+        </p>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: `"Craftelle" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: 'Craftelle - Email Verification Code',
+      html: this.craftelleEmailTemplate(bodyContent),
+      attachments: [this.getLogoAttachment()],
+    };
+
     try {
       console.log(`Attempting to send OTP email to ${email}`);
       const info = await this.transporter.sendMail(mailOptions);
@@ -66,15 +147,30 @@ export class EmailService {
   }
 
   async sendForgotPasswordEmail(email: string, newPassword: string) {
+    const bodyContent = `
+      <h2 style="color: #1F2937; margin: 0 0 8px; font-size: 22px;">Password Reset</h2>
+      <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+        We received a request to reset your Craftelle account password. Your new temporary password is below.
+      </p>
+
+      <div style="background: linear-gradient(135deg, #FFF1F2 0%, #FECDD3 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 0 0 24px;">
+        <p style="color: #6B7280; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 8px;">Your New Password</p>
+        <p style="color: #FB7185; font-size: 24px; font-weight: 700; letter-spacing: 3px; margin: 0; word-break: break-all;">${newPassword}</p>
+      </div>
+
+      <div style="background: #F9FAFB; border-radius: 8px; padding: 14px 18px; margin: 0 0 16px;">
+        <p style="color: #6B7280; font-size: 13px; margin: 0; line-height: 1.5;">
+          <strong style="color: #1F2937;">Important:</strong> For your security, please change your password on the <strong>Settings Page</strong> after logging in. If you didn't request a password reset, please contact support immediately.
+        </p>
+      </div>
+    `;
+
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `"Craftelle" <${process.env.SMTP_USER}>`,
       to: email,
-      subject: 'Your New Password',
-      html: `
-        <h1>Password Reset</h1>
-        <p>Your new password is: <strong>${newPassword}</strong></p>
-        <p>Please change your password on the settings Page after logging in.</p>
-      `,
+      subject: 'Craftelle - Password Reset',
+      html: this.craftelleEmailTemplate(bodyContent),
+      attachments: [this.getLogoAttachment()],
     };
 
     try {
@@ -102,53 +198,81 @@ export class EmailService {
             year: 'numeric',
           });
 
+      const itemsHtml = (order.items || []).map((item: any) => `
+        <tr>
+          <td style="padding: 10px 12px; color: #1F2937; font-size: 14px; border-bottom: 1px solid #FFF1F2;">${item.productName || ''}</td>
+          <td style="padding: 10px 12px; color: #6B7280; font-size: 14px; text-align: center; border-bottom: 1px solid #FFF1F2;">${item.quantity || 1}</td>
+          <td style="padding: 10px 12px; color: #FB7185; font-weight: 600; font-size: 14px; text-align: right; border-bottom: 1px solid #FFF1F2;">GHS ${(item.price || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      const bodyContent = `
+        <h2 style="color: #1F2937; margin: 0 0 8px; font-size: 22px;">Order Confirmed!</h2>
+        <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+          Thank you for your order! Your purchase has been confirmed and is being processed. Please find your receipt details below.
+        </p>
+
+        <!-- Order Summary -->
+        <div style="background: linear-gradient(135deg, #FFF1F2 0%, #FECDD3 100%); border-radius: 12px; padding: 20px; margin: 0 0 24px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Date</td>
+              <td style="padding: 6px 0; color: #1F2937; font-weight: 600; text-align: right; font-size: 14px;">${orderDate}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Items</td>
+              <td style="padding: 6px 0; color: #1F2937; font-weight: 600; text-align: right; font-size: 14px;">${(order.items || []).length} item(s)</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Payment</td>
+              <td style="padding: 6px 0; color: #10B981; font-weight: 600; text-align: right; font-size: 14px;">${order.paymentStatus || 'Pending'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0 0; color: #6B7280; font-size: 14px; border-top: 1px solid rgba(251,113,133,0.2);">Total</td>
+              <td style="padding: 8px 0 0; color: #FB7185; font-weight: 700; text-align: right; font-size: 20px; border-top: 1px solid rgba(251,113,133,0.2);">GHS ${(order.totalPrice || 0).toLocaleString()}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Items Table -->
+        ${(order.items || []).length > 0 ? `
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 24px;">
+          <thead>
+            <tr style="background: #FB7185;">
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left; font-weight: 600;">Product</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: center; font-weight: 600;">Qty</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: right; font-weight: 600;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        ` : ''}
+
+        <!-- Delivery Info -->
+        <div style="background: #F9FAFB; border-radius: 8px; padding: 14px 18px; margin: 0 0 16px;">
+          <p style="color: #1F2937; font-size: 13px; font-weight: 600; margin: 0 0 8px;">Delivery Details</p>
+          <p style="color: #6B7280; font-size: 13px; margin: 0; line-height: 1.6;">
+            ${order.deliveryAddress ? `${order.deliveryAddress}, ` : ''}${order.deliveryCity || ''}, ${order.deliveryRegion || ''}<br/>
+            ${order.customerPhone ? `Phone: ${order.customerPhone}` : ''}
+          </p>
+        </div>
+
+        <p style="color: #6B7280; font-size: 13px; line-height: 1.5; margin: 16px 0 0;">
+          Your detailed receipt is attached as a PDF. If you have any questions, feel free to contact us.
+        </p>
+      `;
+
       const mailOptions = {
-        from: process.env.SMTP_USER,
+        from: `"Craftelle" <${process.env.SMTP_USER}>`,
         to: order.customerEmail,
-        subject: `Craftelle - Order Receipt`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
-            <div style="background: linear-gradient(135deg, #FDA4AF, #FB7185); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px; letter-spacing: 2px;">CRAFTELLE</h1>
-              <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">Premium Gifting Brand</p>
-            </div>
-            <div style="padding: 30px; background: #fff;">
-              <h2 style="color: #1F2937; margin-bottom: 8px;">Thank you for your order!</h2>
-              <p style="color: #6B7280; font-size: 15px; line-height: 1.6;">
-                Your order has been confirmed and is being processed. Please find your order receipt attached as a PDF.
-              </p>
-              <div style="background: #FFF1F2; border-radius: 12px; padding: 20px; margin: 20px 0;">
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Date</td>
-                    <td style="padding: 6px 0; color: #1F2937; font-weight: bold; text-align: right; font-size: 14px;">${orderDate}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Total</td>
-                    <td style="padding: 6px 0; color: #FB7185; font-weight: bold; text-align: right; font-size: 16px;">GHS ${(order.totalPrice || 0).toLocaleString()}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Payment</td>
-                    <td style="padding: 6px 0; color: #10B981; font-weight: bold; text-align: right; font-size: 14px;">${order.paymentStatus || 'Pending'}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Items</td>
-                    <td style="padding: 6px 0; color: #1F2937; font-weight: bold; text-align: right; font-size: 14px;">${(order.items || []).length} item(s)</td>
-                  </tr>
-                </table>
-              </div>
-              <p style="color: #6B7280; font-size: 13px; line-height: 1.5;">
-                If you have any questions, feel free to contact us on WhatsApp or email.
-              </p>
-            </div>
-            <div style="background: #F9FAFB; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #E5E7EB;">
-              <p style="color: #9CA3AF; font-size: 12px; margin: 0;">Craftelle - Premium Gifting Brand</p>
-            </div>
-          </div>
-        `,
+        subject: 'Craftelle - Order Receipt',
+        html: this.craftelleEmailTemplate(bodyContent),
         attachments: [
+          this.getLogoAttachment(),
           {
-            filename: `Craftelle-Receipt.pdf`,
+            filename: 'Craftelle-Receipt.pdf',
             content: pdfBuffer,
             contentType: 'application/pdf',
           },

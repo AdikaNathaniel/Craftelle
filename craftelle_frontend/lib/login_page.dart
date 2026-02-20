@@ -15,6 +15,7 @@ import 'facilities-list.dart';
 import 'analytics-home.dart';
 import 'seller-home.dart';
 import 'customer-home.dart';
+import 'craftelle-dialog.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -364,121 +365,29 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showAccountLockedDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Account Temporarily Locked"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                message,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Please try again later or contact support if you need immediate assistance.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
+    CraftelleDialog.showError(
+      context,
+      title: "Account Temporarily Locked",
+      message: "$message\n\nPlease try again later or contact support if you need immediate assistance.",
     );
   }
 
   void _showAccountDeactivatedDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Account Deactivated"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 50),
-              const SizedBox(height: 20),
-              const Text(
-                "Your account has been deactivated due to multiple failed login attempts.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Please contact support to reactivate your account.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _showContactSupportDialog();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text("Contact Support"),
-              ),
-            ],
-          ),
-        );
-      },
+    CraftelleDialog.showError(
+      context,
+      title: "Account Deactivated",
+      message: "Your account has been deactivated due to multiple failed login attempts.\n\nPlease contact support to reactivate your account.",
+      buttonText: "Contact Support",
+      onDismiss: () => _showContactSupportDialog(),
     );
   }
 
   void _showEmailNotVerifiedDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Email Not Verified"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.email_outlined, color: Colors.orange, size: 50),
-              const SizedBox(height: 20),
-              const Text(
-                "Please verify your email address before logging in.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Check your inbox for the verification email.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("OK"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      await _resendVerificationEmail();
-                    },
-                    child: const Text("Resend Email"),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
+    CraftelleDialog.showInfo(
+      context,
+      title: "Email Not Verified",
+      message: "Please verify your email address before logging in. Check your inbox for the verification email.",
+      buttonText: "OK",
     );
   }
 
@@ -504,64 +413,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showFailedAttemptDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Login Failed"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange[700],
-                size: 50,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "$_remainingAttempts attempts remaining",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.orange[700],
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
+    CraftelleDialog.showInfo(
+      context,
+      title: "Login Failed",
+      message: "$message\n\n$_remainingAttempts attempts remaining.",
     );
   }
 
   void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
+    CraftelleDialog.showError(context, title: "Error", message: message);
   }
 
   void _showContactSupportDialog() {
@@ -715,44 +575,35 @@ class _LoginPageState extends State<LoginPage> {
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200 && responseData['success']) {
-        _showSuccessDialog(
-          "Password Reset",
-          "A temporary password has been sent to your email address.",
-        );
+        if (mounted) {
+          CraftelleDialog.showSuccess(
+            context,
+            title: "Password Reset Successful",
+            message: "A temporary password has been sent to your email address. Please check your inbox.",
+          );
+        }
       } else {
-        _showErrorDialog(responseData['message'] ?? "Failed to send password reset email");
+        if (mounted) {
+          CraftelleDialog.showError(
+            context,
+            title: "Password Reset Failed",
+            message: responseData['message'] ?? "Failed to send password reset email. Please try again.",
+          );
+        }
       }
     } catch (error) {
-      _showErrorDialog("Failed to connect to the server");
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: "Connection Error",
+          message: "Failed to connect to the server. Please check your internet connection.",
+        );
+      }
     }
   }
 
   void _showSuccessDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle_outline, color: Color(0xFFFDA4AF), size: 50),
-              const SizedBox(height: 20),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
+    CraftelleDialog.showSuccess(context, title: title, message: message);
   }
 
   void _showSnackbar(String message, Color color) {

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'product-detail-page.dart';
 import 'rating-widget.dart';
+import 'craftelle-dialog.dart';
 
 class CollectionsPage extends StatefulWidget {
   final String? userEmail;
@@ -64,9 +65,13 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading products: $e')),
-      );
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: 'Loading Error',
+          message: 'Could not load products. Please check your connection and try again.',
+        );
+      }
     }
   }
 
@@ -129,110 +134,47 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product deleted successfully'),
-            backgroundColor: Color(0xFFFDA4AF),
-          ),
-        );
+        if (mounted) {
+          CraftelleDialog.showSuccess(
+            context,
+            title: 'Product Deleted',
+            message: 'The product has been deleted successfully.',
+          );
+        }
         _fetchProducts();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to delete product'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          CraftelleDialog.showError(
+            context,
+            title: 'Delete Failed',
+            message: 'Could not delete the product. Please try again.',
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting product: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: 'Error',
+          message: 'Failed to delete product. Please check your connection.',
+        );
+      }
     }
   }
 
-  void _showDeleteDialog(Map<String, dynamic> product) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.red,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Delete Product',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Are you sure you want to delete "${product['name']}"?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey[700],
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'This action cannot be undone!',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey[600],
-                    ),
-                    child: const Text("Cancel"),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _deleteProduct(product['_id']);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.delete, size: 18),
-                        SizedBox(width: 6),
-                        Text("Delete"),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+  void _showDeleteDialog(Map<String, dynamic> product) async {
+    final confirmed = await CraftelleDialog.showConfirmation(
+      context,
+      title: 'Delete Product',
+      message: 'Are you sure you want to delete "${product['name']}"?\n\nThis action cannot be undone!',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDangerous: true,
     );
+
+    if (confirmed) {
+      _deleteProduct(product['_id']);
+    }
   }
 
   void _showEditDialog(Map<String, dynamic> product) {
@@ -451,28 +393,31 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product updated successfully'),
-            backgroundColor: Color(0xFFFDA4AF),
-          ),
-        );
+        if (mounted) {
+          CraftelleDialog.showSuccess(
+            context,
+            title: 'Product Updated',
+            message: 'The product has been updated successfully.',
+          );
+        }
         _fetchProducts();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update product'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          CraftelleDialog.showError(
+            context,
+            title: 'Update Failed',
+            message: 'Could not update the product. Please try again.',
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating product: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: 'Error',
+          message: 'Failed to update product. Please check your connection.',
+        );
+      }
     }
   }
 

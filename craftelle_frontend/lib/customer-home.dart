@@ -17,6 +17,7 @@ import 'settings-page.dart';
 import 'notifications-page.dart';
 import 'order-history-page.dart';
 import 'rate-us-page.dart';
+import 'craftelle-dialog.dart';
 
 class CustomerHomePage extends StatefulWidget {
   final String userEmail;
@@ -136,8 +137,10 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         }),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location saved successfully')),
+        CraftelleDialog.showSuccess(
+          context,
+          title: 'Location Saved',
+          message: 'Your delivery location has been saved successfully.',
         );
       }
     } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'craftelle-dialog.dart';
 
 class NotificationsPage extends StatefulWidget {
   final String userRole;
@@ -86,13 +87,31 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         _messageController.clear();
-        _showSnackbar('Notification sent successfully', Colors.green);
         _fetchNotifications();
+        if (mounted) {
+          CraftelleDialog.showSuccess(
+            context,
+            title: 'Notification Sent',
+            message: 'Your notification has been sent to all $_selectedRole users successfully.',
+          );
+        }
       } else {
-        _showSnackbar('Failed to send notification', Colors.red);
+        if (mounted) {
+          CraftelleDialog.showError(
+            context,
+            title: 'Failed to Send',
+            message: 'Could not send the notification. Please try again.',
+          );
+        }
       }
     } catch (e) {
-      _showSnackbar('Failed to connect to server', Colors.red);
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: 'Connection Error',
+          message: 'Failed to connect to the server. Please check your internet connection.',
+        );
+      }
     }
 
     if (mounted) setState(() => _isSending = false);

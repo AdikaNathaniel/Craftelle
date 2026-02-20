@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'order-service.dart';
+import 'craftelle-dialog.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({Key? key}) : super(key: key);
@@ -408,27 +409,18 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
-  void _confirmDelete(Order order) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Remove Order?'),
-        content: const Text('This order will be removed from your history.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _orderService.removeOrder(order.id);
-            },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+  void _confirmDelete(Order order) async {
+    final confirmed = await CraftelleDialog.showConfirmation(
+      context,
+      title: 'Remove Order',
+      message: 'This order will be removed from your history. This action cannot be undone.',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      isDangerous: true,
     );
+
+    if (confirmed) {
+      _orderService.removeOrder(order.id);
+    }
   }
 }

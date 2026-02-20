@@ -7,6 +7,7 @@ import 'basket-service.dart';
 import 'order-service.dart';
 import 'payment-page.dart';
 import 'location-picker-page.dart';
+import 'craftelle-dialog.dart';
 
 class BasketPage extends StatefulWidget {
   final VoidCallback? onOrderPlaced;
@@ -122,51 +123,18 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
     );
   }
 
-  void _placeOrder() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: _pink.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.send_rounded, color: _pink, size: 22),
-            ),
-            const SizedBox(width: 12),
-            const Text('Place Order?'),
-          ],
-        ),
-        content: const Text(
-          'Your basket items and wish list will be submitted as one order.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _showDeliveryDialog();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _pink,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text('Continue',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+  void _placeOrder() async {
+    final confirmed = await CraftelleDialog.showConfirmation(
+      context,
+      title: 'Place Order',
+      message: 'Your basket items and wish list will be submitted as one order.',
+      confirmText: 'Continue',
+      cancelText: 'Cancel',
     );
+
+    if (confirmed) {
+      _showDeliveryDialog();
+    }
   }
 
   void _showDeliveryDialog() async {
@@ -415,14 +383,18 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                         child: ElevatedButton(
                           onPressed: () {
                             if (phoneController.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please enter a phone number')),
+                              CraftelleDialog.showInfo(
+                                context,
+                                title: 'Phone Required',
+                                message: 'Please enter your phone number for delivery.',
                               );
                               return;
                             }
                             if (!useMyLocation && selectedLocation == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please select a delivery location')),
+                              CraftelleDialog.showInfo(
+                                context,
+                                title: 'Location Required',
+                                message: 'Please select a delivery location.',
                               );
                               return;
                             }
@@ -760,28 +732,18 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
   Widget _buildClearBasketButton() {
     return Center(
       child: TextButton.icon(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('Clear Basket?'),
-              content: const Text('Remove all items from your basket?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _basket.clearBasket();
-                  },
-                  child: const Text('Clear', style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            ),
+        onPressed: () async {
+          final confirmed = await CraftelleDialog.showConfirmation(
+            context,
+            title: 'Clear Basket',
+            message: 'Remove all items from your basket?',
+            confirmText: 'Clear',
+            cancelText: 'Cancel',
+            isDangerous: true,
           );
+          if (confirmed) {
+            _basket.clearBasket();
+          }
         },
         icon: Icon(Icons.remove_shopping_cart, size: 18, color: Colors.grey[500]),
         label: Text('Clear Basket', style: TextStyle(color: Colors.grey[500], fontSize: 13)),
@@ -867,28 +829,18 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
             const SizedBox(height: 8),
             Center(
               child: TextButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      title: const Text('Clear Wish List?'),
-                      content: const Text('Remove all items from your wish list?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _basket.clearWishList();
-                          },
-                          child: const Text('Clear', style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    ),
+                onPressed: () async {
+                  final confirmed = await CraftelleDialog.showConfirmation(
+                    context,
+                    title: 'Clear Wish List',
+                    message: 'Remove all items from your wish list?',
+                    confirmText: 'Clear',
+                    cancelText: 'Cancel',
+                    isDangerous: true,
                   );
+                  if (confirmed) {
+                    _basket.clearWishList();
+                  }
                 },
                 icon: Icon(Icons.delete_sweep, size: 18, color: Colors.grey[500]),
                 label: Text('Clear List', style: TextStyle(color: Colors.grey[500], fontSize: 13)),

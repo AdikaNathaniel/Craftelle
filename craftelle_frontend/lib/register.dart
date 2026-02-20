@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'otp_page.dart';
 import 'login_page.dart';
+import 'craftelle-dialog.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -140,84 +141,26 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _showSuccess(String message, String email) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.check_circle,
-                color: Color(0xFFFDA4AF),
-                size: 80,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Your account has been created successfully!",
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFDA4AF),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OTPVerificationPage(email: email),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Continue",
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
+    CraftelleDialog.showSuccess(
+      context,
+      title: 'Registration Successful',
+      message: 'Your account has been created successfully! Please verify your email to continue.',
+      onDismiss: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OTPVerificationPage(email: email),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   void _showError(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Error"),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
+    CraftelleDialog.showError(
+      context,
+      title: 'Registration Failed',
+      message: message,
     );
   }
 

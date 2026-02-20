@@ -9,6 +9,7 @@ import 'admin-ratings-page.dart';
 import 'profile-page.dart';
 import 'settings-page.dart';
 import 'notifications-page.dart';
+import 'craftelle-dialog.dart';
 
 class AdminHomePage extends StatefulWidget {
   final String userEmail;
@@ -44,8 +45,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logout failed: ${e.toString()}')),
+      CraftelleDialog.showError(
+        context,
+        title: 'Logout Failed',
+        message: 'Could not log out. Please check your connection and try again.',
       );
     }
   }
@@ -337,10 +340,10 @@ class _UserListPageState extends State<UserListPage> {
           setState(() {
             isLoading = false;
           });
-          _showSnackbar(
-            context, 
-            "Failed to load users: ${responseData['message']}", 
-            Colors.red
+          CraftelleDialog.showError(
+            context,
+            title: 'Failed to Load Users',
+            message: responseData['message'] ?? 'Could not load users from server.',
           );
         }
       } else {
@@ -348,10 +351,10 @@ class _UserListPageState extends State<UserListPage> {
         setState(() {
           isLoading = false;
         });
-        _showSnackbar(
-          context, 
-          "Server error: ${response.statusCode}", 
-          Colors.red
+        CraftelleDialog.showError(
+          context,
+          title: 'Server Error',
+          message: 'The server returned an error (${response.statusCode}). Please try again later.',
         );
       }
     } catch (e) {
@@ -359,21 +362,12 @@ class _UserListPageState extends State<UserListPage> {
       setState(() {
         isLoading = false;
       });
-      _showSnackbar(
-        context, 
-        "Network error: ${e.toString()}", 
-        Colors.red
+      CraftelleDialog.showError(
+        context,
+        title: 'Network Error',
+        message: 'Failed to connect to the server. Please check your internet connection.',
       );
     }
-  }
-
-  void _showSnackbar(BuildContext context, String message, Color color) {
-    final snackBar = SnackBar(
-      content: Text(message),
-      backgroundColor: color,
-      duration: const Duration(seconds: 2),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   Future<void> _refreshData() async {
@@ -391,144 +385,47 @@ class _UserListPageState extends State<UserListPage> {
       );
 
       if (response.statusCode == 200) {
-        _showSnackbar(context, "User '$userName' deleted successfully", const Color(0xFFFDA4AF));
+        if (mounted) {
+          CraftelleDialog.showSuccess(
+            context,
+            title: 'User Deleted',
+            message: 'User \'$userName\' has been deleted successfully.',
+          );
+        }
         await _refreshData();
       } else {
-        _showSnackbar(context, "Failed to delete user", Colors.red);
+        if (mounted) {
+          CraftelleDialog.showError(
+            context,
+            title: 'Delete Failed',
+            message: 'Could not delete user. Please try again.',
+          );
+        }
       }
     } catch (e) {
-      _showSnackbar(context, "Error deleting user: ${e.toString()}", Colors.red);
+      if (mounted) {
+        CraftelleDialog.showError(
+          context,
+          title: 'Error',
+          message: 'Failed to delete user. Please check your connection.',
+        );
+      }
     }
   }
 
-  void _showDeleteUserDialog(User user) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.red,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Delete User',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Are you sure you want to delete this user?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey[700],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.person, size: 16, color: Color(0xFFFDA4AF)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            user.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.email, size: 16, color: Color(0xFFFDA4AF)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            user.email,
-                            style: TextStyle(color: Colors.grey[700], fontSize: 13),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.badge, size: 16, color: Color(0xFFFDA4AF)),
-                        const SizedBox(width: 8),
-                        Text(
-                          user.type,
-                          style: TextStyle(color: Colors.grey[700], fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'This action cannot be undone!',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey[600],
-                    ),
-                    child: const Text("Cancel"),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _deleteUser(user.id, user.name);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.delete, size: 18),
-                        SizedBox(width: 6),
-                        Text("Delete"),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+  void _showDeleteUserDialog(User user) async {
+    final confirmed = await CraftelleDialog.showConfirmation(
+      context,
+      title: 'Delete User',
+      message: 'Are you sure you want to delete ${user.name} (${user.email})?\n\nThis action cannot be undone!',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDangerous: true,
     );
+
+    if (confirmed) {
+      _deleteUser(user.id, user.name);
+    }
   }
 
   @override
