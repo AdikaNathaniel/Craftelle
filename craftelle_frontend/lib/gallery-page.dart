@@ -19,7 +19,8 @@ class _GalleryPageState extends State<GalleryPage> with TickerProviderStateMixin
       imageFiles: [
         '1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg', '6.jpeg',
         '8.jpeg', '9.jpeg', '10.jpeg', '11.jpeg', '12.jpeg', '13.jpeg',
-        '14.jpeg', '15.jpeg', '16.jpeg', '17.jpeg', '18.jpeg', '19.jpeg',
+        '14.jpeg', '15.jpeg', '16.jpeg', '17.jpeg', '18.jpeg',
+        '20.jpeg', '22.jpeg', '23.jpeg', '24.jpeg', '25.jpeg',
       ],
       icon: Icons.local_florist,
     ),
@@ -33,8 +34,8 @@ class _GalleryPageState extends State<GalleryPage> with TickerProviderStateMixin
       name: 'Treats Box',
       folder: 'assets/treats-box',
       imageFiles: [
-        '1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg',
-        '5.jpeg', '6.jpeg', '7.jpeg', '8.jpeg',
+        '1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg',
+        '6.jpeg', '7.jpeg', '8.jpeg', '9.jpeg', '10.jpeg',
       ],
       icon: Icons.card_giftcard,
     ),
