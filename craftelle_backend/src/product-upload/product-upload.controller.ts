@@ -50,6 +50,18 @@ export class ProductUploadController {
     }
   }
 
+  @Post('refresh-seller-names')
+  async refreshSellerNames() {
+    try {
+      return await this.productUploadService.refreshAllSellerNames();
+    } catch (error) {
+      throw new HttpException(
+        { success: false, message: error.message },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {

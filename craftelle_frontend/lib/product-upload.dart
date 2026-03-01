@@ -176,7 +176,7 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
         'imageUrl': imageUrl,
         'hasSizes': _hasSizes,
         'sellerEmail': widget.userEmail,
-        'sellerName': widget.userEmail.split('@')[0],
+        'sellerName': widget.userEmail,
       };
 
       if (_hasSizes) {

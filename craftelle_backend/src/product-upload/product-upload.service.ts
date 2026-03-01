@@ -1,13 +1,28 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { ProductRepository } from '../shared/repositories/product.repository';
 import { CreateProductDto } from './dto/create-product.dto';
+import { Users } from '../shared/schema/users';
 
 @Injectable()
 export class ProductUploadService {
-  constructor(private readonly productRepository: ProductRepository) {}
+  constructor(
+    private readonly productRepository: ProductRepository,
+    @InjectModel(Users.name) private readonly userModel: Model<Users>,
+  ) {}
+
+  private async resolveSellerName(sellerEmail: string): Promise<string> {
+    const user = await this.userModel.findOne({ email: sellerEmail }).exec();
+    return user?.name || sellerEmail.split('@')[0];
+  }
 
   async create(createProductDto: CreateProductDto) {
     try {
+      // Resolve seller name from Users DB
+      const resolvedName = await this.resolveSellerName(createProductDto.sellerEmail);
+      createProductDto.sellerName = resolvedName;
+
       const product = await this.productRepository.create(createProductDto);
       return {
         success: true,
@@ -84,6 +99,10 @@ export class ProductUploadService {
         );
       }
 
+      // Resolve seller name from Users DB
+      const resolvedName = await this.resolveSellerName(updateData.sellerEmail);
+      updateData.sellerName = resolvedName;
+
       const product = await this.productRepository.updateOne(id, updateData);
       return {
         success: true,
@@ -94,6 +113,35 @@ export class ProductUploadService {
       throw new HttpException(
         error.message || 'Failed to update product',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async refreshAllSellerNames() {
+    try {
+      // Find the actual seller account
+      const seller = await this.userModel.findOne({ type: 'Seller' }).exec();
+      if (!seller) {
+        return { success: false, message: 'No seller account found' };
+      }
+
+      const products = await this.productRepository.findAll();
+      let updated = 0;
+      for (const product of products) {
+        // Fix both sellerEmail and sellerName to match the actual seller
+        if (product.sellerEmail !== seller.email || product.sellerName !== seller.name) {
+          await this.productRepository.updateOne(product._id.toString(), {
+            sellerEmail: seller.email,
+            sellerName: seller.name,
+          });
+          updated++;
+        }
+      }
+      return { success: true, message: `Updated ${updated} product(s) to seller: ${seller.name} (${seller.email})` };
+    } catch (error) {
+      throw new HttpException(
+        `Failed to refresh seller names: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
