@@ -66,6 +66,9 @@ export class Users extends Document {
 
   @Prop({ default: null })
   savedLongitude: number | null;
+
+  @Prop({ default: null })
+  fcmToken: string | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);

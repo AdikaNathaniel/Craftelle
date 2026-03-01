@@ -324,6 +324,8 @@ class _LoginPageState extends State<LoginPage> {
 
     // Initialize push notifications for this user's role
     await PushNotificationService().init(userType);
+    // Send FCM token to backend for targeted push notifications
+    PushNotificationService.sendFcmTokenToBackend(email);
 
     final userTypeLower = userType.toLowerCase();
 

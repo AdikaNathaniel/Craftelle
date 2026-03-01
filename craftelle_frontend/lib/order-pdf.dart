@@ -181,6 +181,15 @@ class OrderPdfGenerator {
                               child: pw.Text(item.text,
                                   style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
                             ),
+                            if (item.quotedPrice != null)
+                              pw.Text(
+                                'GHS ${NumberFormat('#,##0').format(item.quotedPrice)}',
+                                style: pw.TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: pw.FontWeight.bold,
+                                  color: _pinkDark,
+                                ),
+                              ),
                           ],
                         ),
                         if (item.specifications.isNotEmpty)

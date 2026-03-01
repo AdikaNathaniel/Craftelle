@@ -383,7 +383,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                       Expanded(
                         flex: 2,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (phoneController.text.trim().isEmpty) {
                               CraftelleDialog.showInfo(
                                 context,
@@ -421,29 +421,57 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                             }
 
                             Navigator.pop(ctx);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PaymentPage(
-                                  basketItems: _basket.items,
-                                  wishList: _basket.wishList,
-                                  totalPrice: _basket.totalPrice,
-                                  deliveryCity: city,
-                                  deliveryRegion: region,
-                                  deliveryAddress: address,
-                                  customerPhone: phoneController.text.trim(),
-                                  deliveryLatitude: lat,
-                                  deliveryLongitude: lng,
-                                  onPaymentConfirmed: () async {
-                                    await _basket.clearBasket();
-                                    await _basket.clearWishList();
-                                    if (mounted) {
-                                      widget.onOrderPlaced?.call();
-                                    }
-                                  },
+
+                            final hasExtras = _basket.wishList.isNotEmpty;
+
+                            if (hasExtras) {
+                              // Has extras — submit order directly without payment
+                              await OrderService().placeOrder(
+                                _basket.items,
+                                _basket.wishList,
+                                deliveryCity: city,
+                                deliveryRegion: region,
+                                deliveryAddress: address,
+                                customerPhone: phoneController.text.trim(),
+                                deliveryLatitude: lat,
+                                deliveryLongitude: lng,
+                              );
+                              await _basket.clearBasket();
+                              await _basket.clearWishList();
+                              if (mounted) {
+                                widget.onOrderPlaced?.call();
+                                CraftelleDialog.showSuccess(
+                                  context,
+                                  title: 'Order Submitted',
+                                  message: 'Your order has been submitted! The seller will review and price your extras. You\'ll receive a notification when your quote is ready.',
+                                );
+                              }
+                            } else {
+                              // No extras — go to payment as before
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PaymentPage(
+                                    basketItems: _basket.items,
+                                    wishList: _basket.wishList,
+                                    totalPrice: _basket.totalPrice,
+                                    deliveryCity: city,
+                                    deliveryRegion: region,
+                                    deliveryAddress: address,
+                                    customerPhone: phoneController.text.trim(),
+                                    deliveryLatitude: lat,
+                                    deliveryLongitude: lng,
+                                    onPaymentConfirmed: () async {
+                                      await _basket.clearBasket();
+                                      await _basket.clearWishList();
+                                      if (mounted) {
+                                        widget.onOrderPlaced?.call();
+                                      }
+                                    },
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _pink,
@@ -452,8 +480,9 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                           ),
-                          child: const Text('Continue to Payment',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          child: Text(
+                              _basket.wishList.isNotEmpty ? 'Submit for Quote' : 'Continue to Payment',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                         ),
                       ),
                     ],

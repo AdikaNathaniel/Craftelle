@@ -71,15 +71,18 @@ class OrderItem {
 class OrderWishListItem {
   final String text;
   final String specifications;
+  final double? quotedPrice;
 
   OrderWishListItem({
     required this.text,
     this.specifications = '',
+    this.quotedPrice,
   });
 
   Map<String, dynamic> toJson() => {
         'text': text,
         'specifications': specifications,
+        if (quotedPrice != null) 'quotedPrice': quotedPrice,
       };
 
   factory OrderWishListItem.fromJson(dynamic json) {
@@ -90,6 +93,7 @@ class OrderWishListItem {
     return OrderWishListItem(
       text: map['text'] ?? '',
       specifications: map['specifications'] ?? '',
+      quotedPrice: (map['quotedPrice'] as num?)?.toDouble(),
     );
   }
 }
@@ -110,6 +114,10 @@ class Order {
   final String paymentStatus;
   final String paymentReference;
   final String orderStatus;
+  final bool requiresQuote;
+  final String quoteStatus;
+  final double? quotedExtrasTotal;
+  final DateTime? quotedAt;
 
   Order({
     required this.id,
@@ -127,6 +135,10 @@ class Order {
     this.paymentStatus = 'Pending',
     this.paymentReference = '',
     this.orderStatus = 'Pending',
+    this.requiresQuote = false,
+    this.quoteStatus = 'none',
+    this.quotedExtrasTotal,
+    this.quotedAt,
   });
 
   Map<String, dynamic> toJson() => {
@@ -145,6 +157,10 @@ class Order {
         'paymentStatus': paymentStatus,
         'paymentReference': paymentReference,
         'orderStatus': orderStatus,
+        'requiresQuote': requiresQuote,
+        'quoteStatus': quoteStatus,
+        'quotedExtrasTotal': quotedExtrasTotal,
+        'quotedAt': quotedAt?.toIso8601String(),
       };
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
@@ -169,6 +185,10 @@ class Order {
         paymentStatus: json['paymentStatus'] ?? 'Pending',
         paymentReference: json['paymentReference'] ?? '',
         orderStatus: json['orderStatus'] ?? 'Pending',
+        requiresQuote: json['requiresQuote'] ?? false,
+        quoteStatus: json['quoteStatus'] ?? 'none',
+        quotedExtrasTotal: (json['quotedExtrasTotal'] as num?)?.toDouble(),
+        quotedAt: json['quotedAt'] != null ? DateTime.parse(json['quotedAt']) : null,
       );
 }
 
@@ -338,6 +358,40 @@ class OrderService {
       }
     } catch (e) {
       debugPrint('Error updating order status: $e');
+    }
+    return false;
+  }
+
+  Future<bool> submitQuote(String orderId, List<Map<String, dynamic>> quotedItems) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_baseUrl/$orderId/quote'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'quotedWishListItems': quotedItems}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      debugPrint('Error submitting quote: $e');
+    }
+    return false;
+  }
+
+  Future<bool> payQuote(String orderId, String paymentReference) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_baseUrl/$orderId/pay-quote'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'paymentReference': paymentReference}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      debugPrint('Error paying quote: $e');
     }
     return false;
   }

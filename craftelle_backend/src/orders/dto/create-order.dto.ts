@@ -109,3 +109,31 @@ export class UpdateOrderStatusDto {
   @IsString()
   orderStatus: string;
 }
+
+export class QuotedWishListItemDto {
+  @IsNotEmpty()
+  @IsString()
+  text: string;
+
+  @IsOptional()
+  @IsString()
+  specifications?: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  quotedPrice: number;
+}
+
+export class SubmitQuoteDto {
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => QuotedWishListItemDto)
+  quotedWishListItems: QuotedWishListItemDto[];
+}
+
+export class PayQuoteDto {
+  @IsNotEmpty()
+  @IsString()
+  paymentReference: string;
+}

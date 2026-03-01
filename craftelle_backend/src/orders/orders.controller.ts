@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { OrderService } from 'src/orders/orders.service';
-import { CreateOrderDto, UpdateOrderStatusDto } from './dto/create-order.dto';
+import { CreateOrderDto, UpdateOrderStatusDto, SubmitQuoteDto, PayQuoteDto } from './dto/create-order.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -34,6 +34,22 @@ export class OrderController {
       id,
       updateOrderStatusDto.orderStatus,
     );
+  }
+
+  @Patch(':id/quote')
+  async submitQuote(
+    @Param('id') id: string,
+    @Body() submitQuoteDto: SubmitQuoteDto,
+  ) {
+    return await this.orderService.submitQuote(id, submitQuoteDto);
+  }
+
+  @Patch(':id/pay-quote')
+  async payQuote(
+    @Param('id') id: string,
+    @Body() payQuoteDto: PayQuoteDto,
+  ) {
+    return await this.orderService.payQuote(id, payQuoteDto);
   }
 
   @Delete(':id')

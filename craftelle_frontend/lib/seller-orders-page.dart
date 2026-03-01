@@ -296,7 +296,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
               ),
             ),
 
-          // Wish List
+          // Wish List / Extras
           if (order.wishListItems.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -315,6 +315,20 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                           color: Color(0xFF374151),
                         ),
                       ),
+                      if (order.quoteStatus == 'pending') ...[
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Needs Pricing',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -354,6 +368,15 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                                 ],
                               ),
                             ),
+                            if (item.quotedPrice != null)
+                              Text(
+                                'GHS ${NumberFormat('#,##0').format(item.quotedPrice)}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: _pinkDark,
+                                ),
+                              ),
                           ],
                         ),
                       )),
@@ -409,34 +432,31 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
             ),
           ),
 
-          // Accept / Reject Buttons + Download PDF
+          // Quote-aware Action Buttons + Download PDF
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Row(
               children: [
-                // Accept Button
-                if (order.orderStatus != 'Accepted')
+                // Send Quote button (for pending quote orders)
+                if (order.quoteStatus == 'pending')
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => _updateStatus(order, index, 'Accepted'),
+                      onTap: () => _showPriceExtrasDialog(order, index),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          gradient: const LinearGradient(colors: [_pink, _pinkDark]),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: Colors.green.withOpacity(0.3)),
                         ),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.check_circle_outline,
-                                color: Colors.green, size: 18),
+                            Icon(Icons.request_quote, color: Colors.white, size: 18),
                             SizedBox(width: 6),
                             Text(
-                              'Accept',
+                              'Send Quote',
                               style: TextStyle(
-                                color: Colors.green,
+                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
@@ -446,75 +466,101 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                       ),
                     ),
                   ),
-                if (order.orderStatus != 'Accepted' &&
-                    order.orderStatus != 'Rejected')
-                  const SizedBox(width: 8),
-                // Reject Button
-                if (order.orderStatus != 'Rejected')
+                // Awaiting Payment badge (for quoted orders)
+                if (order.quoteStatus == 'quoted')
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () => _updateStatus(order, index, 'Rejected'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                          border:
-                              Border.all(color: Colors.red.withOpacity(0.3)),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.cancel_outlined,
-                                color: Colors.red, size: 18),
-                            SizedBox(width: 6),
-                            Text(
-                              'Reject',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.hourglass_top, color: Colors.blue, size: 18),
+                          SizedBox(width: 6),
+                          Text(
+                            'Awaiting Payment',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
+                // Normal Accept/Reject (for non-quote orders or paid quote orders)
+                if (order.quoteStatus == 'none' || order.quoteStatus == 'paid') ...[
+                  if (order.orderStatus != 'Accepted')
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _updateStatus(order, index, 'Accepted'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+                              SizedBox(width: 6),
+                              Text('Accept', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (order.orderStatus != 'Accepted' && order.orderStatus != 'Rejected')
+                    const SizedBox(width: 8),
+                  if (order.orderStatus != 'Rejected')
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _updateStatus(order, index, 'Rejected'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.red.withOpacity(0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.cancel_outlined, color: Colors.red, size: 18),
+                              SizedBox(width: 6),
+                              Text('Reject', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
                 const SizedBox(width: 8),
                 // Download PDF Button
                 GestureDetector(
-                  onTap: () =>
-                      OrderPdfGenerator.generateAndOpen(order, orderNum),
+                  onTap: () => OrderPdfGenerator.generateAndOpen(order, orderNum),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      gradient:
-                          const LinearGradient(colors: [_pink, _pinkDark]),
+                      gradient: const LinearGradient(colors: [_pink, _pinkDark]),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
-                        BoxShadow(
-                          color: _pink.withOpacity(0.3),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
+                        BoxShadow(color: _pink.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2)),
                       ],
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.picture_as_pdf,
-                            color: Colors.white, size: 18),
+                        Icon(Icons.picture_as_pdf, color: Colors.white, size: 18),
                         SizedBox(width: 6),
-                        Text(
-                          'PDF',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
+                        Text('PDF', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                       ],
                     ),
                   ),
@@ -523,6 +569,157 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showPriceExtrasDialog(Order order, int index) {
+    final controllers = order.wishListItems
+        .map((_) => TextEditingController())
+        .toList();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _pink.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.request_quote, color: _pinkDark, size: 32),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Price Extras',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Enter a price (GHS) for each extra item',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+                const SizedBox(height: 18),
+                ...List.generate(order.wishListItems.length, (i) {
+                  final item = order.wishListItems[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.text,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                        ),
+                        if (item.specifications.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(item.specifications, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                          ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: controllers[i],
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: InputDecoration(
+                            hintText: 'Price in GHS',
+                            prefixText: 'GHS ',
+                            prefixStyle: const TextStyle(color: _pinkDark, fontWeight: FontWeight.bold),
+                            filled: true,
+                            fillColor: _bg,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _pink.withOpacity(0.3))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _pink.withOpacity(0.3))),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _pink, width: 2)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text('Cancel', style: TextStyle(color: Colors.grey[600], fontSize: 15)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // Validate all fields have a price
+                          final quotedItems = <Map<String, dynamic>>[];
+                          for (int i = 0; i < order.wishListItems.length; i++) {
+                            final priceText = controllers[i].text.trim();
+                            final price = double.tryParse(priceText);
+                            if (price == null || price <= 0) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please enter a valid price for "${order.wishListItems[i].text}"'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+                            quotedItems.add({
+                              'text': order.wishListItems[i].text,
+                              'specifications': order.wishListItems[i].specifications,
+                              'quotedPrice': price,
+                            });
+                          }
+
+                          Navigator.pop(ctx);
+                          setState(() => _isLoading = true);
+
+                          final success = await OrderService().submitQuote(order.id, quotedItems);
+                          if (success && mounted) {
+                            _loadOrders();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Row(
+                                  children: [
+                                    Icon(Icons.check_circle, color: Colors.white),
+                                    SizedBox(width: 10),
+                                    Text('Quote sent! Customer will be notified.'),
+                                  ],
+                                ),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                          } else if (mounted) {
+                            setState(() => _isLoading = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Failed to submit quote')),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _pinkDark,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Send Quote', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

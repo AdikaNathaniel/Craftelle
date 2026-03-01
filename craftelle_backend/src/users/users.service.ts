@@ -512,6 +512,19 @@ async reactivateAccount(email: string, adminEmail: string) {
   }
 }
 
+  async updateFcmToken(email: string, fcmToken: string) {
+    try {
+      const user = await this.userDB.findOne({ email });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      await this.userDB.updateOne({ _id: user._id }, { fcmToken });
+      return { success: true, message: 'FCM token updated' };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async deleteAccountByEmail(email: string) {
     try {
       const user = await this.userDB.findOne({ email });

@@ -278,6 +278,18 @@ export class UsersController {
     }
   }
 
+  @Patch('/fcm-token')
+  async updateFcmToken(@Body() body: { email: string; fcmToken: string }) {
+    try {
+      return await this.usersService.updateFcmToken(body.email, body.fcmToken);
+    } catch (error) {
+      throw new HttpException(
+        { success: false, message: error.message },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Delete('delete-account/:email')
   async deleteAccount(@Param('email') email: string) {
     try {

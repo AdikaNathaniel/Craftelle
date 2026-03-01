@@ -9,6 +9,9 @@ export class WishListItemSchema {
 
   @Prop({ default: '' })
   specifications: string;
+
+  @Prop({ default: null })
+  quotedPrice: number | null;
 }
 
 export class OrderItemSchema {
@@ -77,6 +80,18 @@ export class Order {
 
   @Prop({ default: 'Pending' })
   orderStatus: string;
+
+  @Prop({ default: false })
+  requiresQuote: boolean;
+
+  @Prop({ default: 'none' })
+  quoteStatus: string;
+
+  @Prop({ default: null })
+  quotedExtrasTotal: number | null;
+
+  @Prop({ default: null })
+  quotedAt: Date | null;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

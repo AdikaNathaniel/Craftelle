@@ -4,6 +4,7 @@ import { NotificationController } from   './notification.controller';
 import { NotificationService } from  './notification.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Notification, NotificationSchema } from 'src/shared/schema/notification.schema';
+import { Users, UserSchema } from 'src/shared/schema/users';
 import { SmsNotificationService } from './sms-notification.service';
 import { NotificationSchedulerService } from  './notification-scheduler.service';
 import { ConfigModule } from '@nestjs/config';
@@ -13,6 +14,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot(),
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
+      { name: Users.name, schema: UserSchema },
     ]),
   ],
   controllers: [NotificationController],

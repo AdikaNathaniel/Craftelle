@@ -288,6 +288,402 @@ export class EmailService {
     }
   }
 
+  async sendQuoteEmail(order: any) {
+    try {
+      const pdfBuffer = await this.generateQuotePDF(order);
+
+      const extrasHtml = (order.wishListItems || []).map((item: any) => `
+        <tr>
+          <td style="padding: 10px 12px; color: #1F2937; font-size: 14px; border-bottom: 1px solid #FFF1F2;">${item.text || ''}</td>
+          <td style="padding: 10px 12px; color: #6B7280; font-size: 13px; border-bottom: 1px solid #FFF1F2;">${item.specifications || '-'}</td>
+          <td style="padding: 10px 12px; color: #FB7185; font-weight: 600; font-size: 14px; text-align: right; border-bottom: 1px solid #FFF1F2;">GHS ${(item.quotedPrice || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      const itemsHtml = (order.items || []).map((item: any) => `
+        <tr>
+          <td style="padding: 10px 12px; color: #1F2937; font-size: 14px; border-bottom: 1px solid #FFF1F2;">${item.productName || ''}</td>
+          <td style="padding: 10px 12px; color: #6B7280; font-size: 14px; text-align: center; border-bottom: 1px solid #FFF1F2;">${item.quantity || 1}</td>
+          <td style="padding: 10px 12px; color: #FB7185; font-weight: 600; font-size: 14px; text-align: right; border-bottom: 1px solid #FFF1F2;">GHS ${(item.price || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      const bodyContent = `
+        <h2 style="color: #1F2937; margin: 0 0 8px; font-size: 22px;">Your Quote is Ready!</h2>
+        <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+          Great news! The seller has reviewed your custom extras and provided pricing. Please review the details below and proceed to payment in the Craftelle app.
+        </p>
+
+        ${(order.items || []).length > 0 ? `
+        <h3 style="color: #1F2937; font-size: 16px; margin: 0 0 12px;">Basket Items</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 20px;">
+          <thead>
+            <tr style="background: #FB7185;">
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Product</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: center;">Qty</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        ` : ''}
+
+        <h3 style="color: #1F2937; font-size: 16px; margin: 0 0 12px;">Quoted Extras</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 24px;">
+          <thead>
+            <tr style="background: #FB7185;">
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Item</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Specifications</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>${extrasHtml}</tbody>
+        </table>
+
+        <div style="background: linear-gradient(135deg, #FFF1F2 0%, #FECDD3 100%); border-radius: 12px; padding: 20px; margin: 0 0 24px; text-align: center;">
+          <p style="color: #6B7280; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 8px;">Grand Total</p>
+          <p style="color: #FB7185; font-size: 28px; font-weight: 700; margin: 0;">GHS ${(order.totalPrice || 0).toLocaleString()}</p>
+        </div>
+
+        <p style="color: #6B7280; font-size: 13px; line-height: 1.5;">
+          Open the <strong>Craftelle</strong> app and go to your Orders to review and pay. Your detailed quote is attached as a PDF.
+        </p>
+      `;
+
+      const mailOptions = {
+        from: `"Craftelle" <${process.env.SMTP_USER}>`,
+        to: order.customerEmail,
+        subject: 'Craftelle - Your Quote is Ready',
+        html: this.craftelleEmailTemplate(bodyContent),
+        attachments: [
+          this.getLogoAttachment(),
+          {
+            filename: 'Craftelle-Quote.pdf',
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`Quote email sent to ${order.customerEmail}: ${info.messageId}`);
+      return { success: true, message: 'Quote email sent' };
+    } catch (error) {
+      console.error('Failed to send quote email:', error);
+      return { success: false, message: error.message };
+    }
+  }
+
+  async sendFinalInvoiceEmail(order: any) {
+    try {
+      const pdfBuffer = await this.generateFinalInvoicePDF(order);
+
+      const itemsHtml = (order.items || []).map((item: any) => `
+        <tr>
+          <td style="padding: 10px 12px; color: #1F2937; font-size: 14px; border-bottom: 1px solid #FFF1F2;">${item.productName || ''}</td>
+          <td style="padding: 10px 12px; color: #6B7280; font-size: 14px; text-align: center; border-bottom: 1px solid #FFF1F2;">${item.quantity || 1}</td>
+          <td style="padding: 10px 12px; color: #FB7185; font-weight: 600; font-size: 14px; text-align: right; border-bottom: 1px solid #FFF1F2;">GHS ${(item.price || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      const extrasHtml = (order.wishListItems || []).filter((w: any) => w.quotedPrice).map((item: any) => `
+        <tr>
+          <td style="padding: 10px 12px; color: #1F2937; font-size: 14px; border-bottom: 1px solid #FFF1F2;">${item.text || ''}</td>
+          <td style="padding: 10px 12px; color: #FB7185; font-weight: 600; font-size: 14px; text-align: right; border-bottom: 1px solid #FFF1F2;">GHS ${(item.quotedPrice || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      const bodyContent = `
+        <h2 style="color: #1F2937; margin: 0 0 8px; font-size: 22px;">Payment Confirmed!</h2>
+        <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+          Payment has been received and confirmed. Here is the final invoice for this order.
+        </p>
+
+        <div style="background: linear-gradient(135deg, #FFF1F2 0%, #FECDD3 100%); border-radius: 12px; padding: 20px; margin: 0 0 24px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Customer</td>
+              <td style="padding: 6px 0; color: #1F2937; font-weight: 600; text-align: right; font-size: 14px;">${order.customerEmail || ''}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Payment Status</td>
+              <td style="padding: 6px 0; color: #10B981; font-weight: 600; text-align: right; font-size: 14px;">Paid</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Reference</td>
+              <td style="padding: 6px 0; color: #1F2937; font-weight: 600; text-align: right; font-size: 14px;">${order.paymentReference || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0 0; color: #6B7280; font-size: 14px; border-top: 1px solid rgba(251,113,133,0.2);">Total Paid</td>
+              <td style="padding: 8px 0 0; color: #FB7185; font-weight: 700; text-align: right; font-size: 20px; border-top: 1px solid rgba(251,113,133,0.2);">GHS ${(order.totalPrice || 0).toLocaleString()}</td>
+            </tr>
+          </table>
+        </div>
+
+        ${(order.items || []).length > 0 ? `
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 16px;">
+          <thead>
+            <tr style="background: #FB7185;">
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Product</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: center;">Qty</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        ` : ''}
+
+        ${extrasHtml ? `
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 24px;">
+          <thead>
+            <tr style="background: #FB7185;">
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Custom Extra</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>${extrasHtml}</tbody>
+        </table>
+        ` : ''}
+
+        <p style="color: #6B7280; font-size: 13px; line-height: 1.5;">
+          Your final invoice is attached as a PDF. Thank you for choosing Craftelle!
+        </p>
+      `;
+
+      // Send to customer
+      const recipients = [order.customerEmail];
+      // Also send to seller if available
+      const sellerEmail = (order.items || []).length > 0 ? order.items[0].sellerEmail : null;
+      if (sellerEmail) recipients.push(sellerEmail);
+
+      const mailOptions = {
+        from: `"Craftelle" <${process.env.SMTP_USER}>`,
+        to: recipients.join(', '),
+        subject: 'Craftelle - Payment Confirmed - Final Invoice',
+        html: this.craftelleEmailTemplate(bodyContent),
+        attachments: [
+          this.getLogoAttachment(),
+          {
+            filename: 'Craftelle-Invoice.pdf',
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`Final invoice sent to ${recipients.join(', ')}: ${info.messageId}`);
+      return { success: true, message: 'Invoice email sent' };
+    } catch (error) {
+      console.error('Failed to send final invoice email:', error);
+      return { success: false, message: error.message };
+    }
+  }
+
+  private generateQuotePDF(order: any): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ size: 'A4', margin: 50 });
+      const chunks: Buffer[] = [];
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const pink = '#FB7185';
+      const darkText = '#1F2937';
+      const grey = '#6B7280';
+      const lightPink = '#FFF1F2';
+
+      // Header
+      doc.rect(0, 0, doc.page.width, 100).fill(pink);
+      doc.fontSize(32).fill('#FFFFFF').text('CRAFTELLE', 50, 30, { align: 'center' });
+      doc.fontSize(12).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 65, { align: 'center' });
+
+      // Title
+      doc.fill(darkText).fontSize(20).text('Quote', 50, 120);
+      doc.moveTo(50, 148).lineTo(545, 148).strokeColor('#E5E7EB').stroke();
+
+      let y = 165;
+      const orderDate = order.quotedAt
+        ? new Date(order.quotedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      const infoRows = [
+        ['Date', orderDate],
+        ['Customer', order.customerEmail || ''],
+        ['Phone', order.customerPhone || ''],
+        ['Delivery', `${order.deliveryAddress || ''}, ${order.deliveryCity || ''}, ${order.deliveryRegion || ''}`],
+      ];
+
+      for (const [label, value] of infoRows) {
+        doc.fontSize(10).fill(grey).text(label, 50, y);
+        doc.fontSize(10).fill(darkText).text(value as string, 180, y);
+        y += 20;
+      }
+
+      // Basket items
+      const items = order.items || [];
+      if (items.length > 0) {
+        y += 10;
+        doc.fontSize(12).fill(darkText).text('Basket Items', 50, y);
+        y += 20;
+        doc.rect(50, y, 495, 25).fill(pink);
+        doc.fontSize(10).fill('#FFFFFF');
+        doc.text('Product', 60, y + 7);
+        doc.text('Qty', 380, y + 7);
+        doc.text('Price', 440, y + 7);
+        y += 25;
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const bgColor = i % 2 === 0 ? lightPink : '#FFFFFF';
+          doc.rect(50, y, 495, 22).fill(bgColor);
+          doc.fontSize(9).fill(darkText);
+          doc.text(item.productName || '', 60, y + 6, { width: 310, ellipsis: true });
+          doc.text(String(item.quantity || 1), 380, y + 6);
+          doc.text(`GHS ${(item.price || 0).toLocaleString()}`, 440, y + 6);
+          y += 22;
+        }
+      }
+
+      // Quoted extras
+      const wishList = order.wishListItems || [];
+      if (wishList.length > 0) {
+        y += 15;
+        doc.fontSize(12).fill(darkText).text('Quoted Extras', 50, y);
+        y += 20;
+        doc.rect(50, y, 495, 25).fill(pink);
+        doc.fontSize(10).fill('#FFFFFF');
+        doc.text('Item', 60, y + 7);
+        doc.text('Specifications', 250, y + 7);
+        doc.text('Price', 440, y + 7);
+        y += 25;
+
+        for (let i = 0; i < wishList.length; i++) {
+          const wish = wishList[i];
+          const bgColor = i % 2 === 0 ? lightPink : '#FFFFFF';
+          doc.rect(50, y, 495, 22).fill(bgColor);
+          doc.fontSize(9).fill(darkText);
+          doc.text(wish.text || '', 60, y + 6, { width: 180, ellipsis: true });
+          doc.text(wish.specifications || '-', 250, y + 6, { width: 180, ellipsis: true });
+          doc.text(`GHS ${(wish.quotedPrice || 0).toLocaleString()}`, 440, y + 6);
+          y += 22;
+        }
+      }
+
+      // Grand total
+      y += 15;
+      doc.moveTo(50, y).lineTo(545, y).strokeColor('#E5E7EB').stroke();
+      y += 12;
+      doc.rect(350, y, 195, 30).fill(pink);
+      doc.fontSize(14).fill('#FFFFFF').text(`Total: GHS ${(order.totalPrice || 0).toLocaleString()}`, 360, y + 8);
+
+      y += 55;
+      doc.fontSize(10).fill(grey).text('Please pay via the Craftelle app to confirm your order.', 50, y, { align: 'center' });
+      doc.fontSize(8).fill('#9CA3AF').text('This is an auto-generated quote.', 50, y + 18, { align: 'center' });
+
+      doc.end();
+    });
+  }
+
+  private generateFinalInvoicePDF(order: any): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ size: 'A4', margin: 50 });
+      const chunks: Buffer[] = [];
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const pink = '#FB7185';
+      const darkText = '#1F2937';
+      const grey = '#6B7280';
+      const lightPink = '#FFF1F2';
+
+      // Header
+      doc.rect(0, 0, doc.page.width, 100).fill(pink);
+      doc.fontSize(32).fill('#FFFFFF').text('CRAFTELLE', 50, 30, { align: 'center' });
+      doc.fontSize(12).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 65, { align: 'center' });
+
+      // Title
+      doc.fill(darkText).fontSize(20).text('Final Invoice', 50, 120);
+      doc.fill('#10B981').fontSize(12).text('PAID', 480, 125);
+      doc.moveTo(50, 148).lineTo(545, 148).strokeColor('#E5E7EB').stroke();
+
+      let y = 165;
+      const orderDate = order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      const infoRows = [
+        ['Date', orderDate],
+        ['Customer', order.customerEmail || ''],
+        ['Phone', order.customerPhone || ''],
+        ['Delivery', `${order.deliveryAddress || ''}, ${order.deliveryCity || ''}, ${order.deliveryRegion || ''}`],
+        ['Payment Status', 'Paid'],
+        ['Payment Ref', order.paymentReference || 'N/A'],
+      ];
+
+      for (const [label, value] of infoRows) {
+        doc.fontSize(10).fill(grey).text(label, 50, y);
+        doc.fontSize(10).fill(darkText).text(value as string, 180, y);
+        y += 20;
+      }
+
+      y += 10;
+      doc.moveTo(50, y).lineTo(545, y).strokeColor('#E5E7EB').stroke();
+      y += 15;
+
+      // Items
+      const items = order.items || [];
+      if (items.length > 0) {
+        doc.rect(50, y, 495, 25).fill(pink);
+        doc.fontSize(10).fill('#FFFFFF');
+        doc.text('Product', 60, y + 7);
+        doc.text('Size', 300, y + 7);
+        doc.text('Qty', 380, y + 7);
+        doc.text('Price', 440, y + 7);
+        y += 25;
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const bgColor = i % 2 === 0 ? lightPink : '#FFFFFF';
+          doc.rect(50, y, 495, 22).fill(bgColor);
+          doc.fontSize(9).fill(darkText);
+          doc.text(item.productName || '', 60, y + 6, { width: 230, ellipsis: true });
+          doc.text(item.selectedSize || '-', 300, y + 6);
+          doc.text(String(item.quantity || 1), 380, y + 6);
+          doc.text(`GHS ${(item.price || 0).toLocaleString()}`, 440, y + 6);
+          y += 22;
+        }
+      }
+
+      // Extras
+      const wishList = (order.wishListItems || []).filter((w: any) => w.quotedPrice);
+      if (wishList.length > 0) {
+        y += 10;
+        doc.fontSize(10).fill(grey).text('Custom Extras:', 50, y);
+        y += 16;
+        for (const wish of wishList) {
+          doc.fontSize(9).fill(darkText).text(`  - ${wish.text || ''}`, 60, y);
+          doc.fill(pink).text(`GHS ${(wish.quotedPrice || 0).toLocaleString()}`, 440, y);
+          y += 14;
+        }
+      }
+
+      // Total
+      y += 15;
+      doc.moveTo(50, y).lineTo(545, y).strokeColor('#E5E7EB').stroke();
+      y += 12;
+      doc.rect(350, y, 195, 30).fill(pink);
+      doc.fontSize(14).fill('#FFFFFF').text(`Total: GHS ${(order.totalPrice || 0).toLocaleString()}`, 360, y + 8);
+
+      y += 55;
+      doc.fontSize(10).fill(grey).text('Thank you for choosing Craftelle!', 50, y, { align: 'center' });
+      doc.fontSize(8).fill('#9CA3AF').text('This is an auto-generated invoice.', 50, y + 18, { align: 'center' });
+
+      doc.end();
+    });
+  }
+
   private generateReceiptPDF(order: any): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument({ size: 'A4', margin: 50 });

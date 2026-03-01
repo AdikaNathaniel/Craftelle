@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 
 // Must be top-level function for background message handling
 @pragma('vm:entry-point')
@@ -145,5 +147,23 @@ class PushNotificationService {
   void _navigateToNotifications() {
     if (navigatorKey?.currentState == null) return;
     debugPrint('Notification tapped — navigating to notifications');
+  }
+
+  static Future<void> sendFcmTokenToBackend(String email) async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) {
+        debugPrint('FCM token is null, skipping backend update');
+        return;
+      }
+      final response = await http.patch(
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/fcm-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'fcmToken': token}),
+      );
+      debugPrint('FCM token sent to backend: ${response.statusCode}');
+    } catch (e) {
+      debugPrint('Failed to send FCM token to backend: $e');
+    }
   }
 }
