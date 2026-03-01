@@ -2,16 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'push-notification-service.dart';
-import 'predictions.dart';
 import 'register.dart';
-import 'health_metrics.dart';
-import 'users_summary.dart';
-import 'pregnancy-calculator.dart';
-import 'face_register.dart';
-import 'face_login.dart';
-import 'live_face_login.dart';
 import 'admin-home.dart';
-import 'facilities-list.dart';
 import 'analytics-home.dart';
 import 'seller-home.dart';
 import 'customer-home.dart';
@@ -280,7 +272,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/login'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/login'),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           'email': email,
@@ -292,7 +284,6 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200 && responseData['success']) {
         _remainingAttempts = 3; // Reset attempts on successful login
-        _showSnackbar("Login successful", const Color(0xFFFDA4AF));
 
         // Navigate to the appropriate page based on user type
         if (mounted) {
@@ -300,18 +291,21 @@ class _LoginPageState extends State<LoginPage> {
         }
       } else {
         // Handle different error cases from the server
-        if (responseData['message'].contains('Account is temporarily locked')) {
-          _showAccountLockedDialog(responseData['message']);
-        } else if (responseData['message'].contains('account has been deactivated') || 
-                   responseData['message'].contains('deactivated')) {
+        String message = responseData['message'] ?? "Invalid email or password";
+        if (message.contains('No account found') || message.contains('Please create an account')) {
+          _showNotRegisteredSnackbar();
+        } else if (message.contains('Account is temporarily locked')) {
+          _showAccountLockedDialog(message);
+        } else if (message.contains('account has been deactivated') ||
+                   message.contains('deactivated')) {
           _showAccountDeactivatedDialog();
-        } else if (responseData['message'].contains('verify your email')) {
+        } else if (message.contains('verify your email')) {
           _showEmailNotVerifiedDialog();
-        } else if (responseData['message'].contains('attempts remaining')) {
-          _remainingAttempts = int.parse(responseData['message'].replaceAll(RegExp(r'[^0-9]'), ''));
-          _showFailedAttemptDialog(responseData['message']);
+        } else if (message.contains('attempts remaining')) {
+          _remainingAttempts = int.parse(message.replaceAll(RegExp(r'[^0-9]'), ''));
+          _showFailedAttemptDialog(message);
         } else {
-          _showErrorDialog(responseData['message'] ?? "Invalid email or password");
+          _showErrorDialog(message);
         }
       }
     } catch (error) {
@@ -364,6 +358,32 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _showNotRegisteredSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          "You are not a registered user. Please create an account to login.",
+          style: TextStyle(color: Colors.white, fontSize: 14),
+        ),
+        backgroundColor: const Color(0xFFE11D48),
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        action: SnackBarAction(
+          label: "Register",
+          textColor: Colors.white,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RegisterPage()),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   void _showAccountLockedDialog(String message) {
     CraftelleDialog.showError(
       context,
@@ -397,7 +417,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/send-otp-email/$email'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/send-otp-email/$email'),
       );
 
       final responseData = json.decode(response.body);
@@ -568,7 +588,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _forgotPassword(String email) async {
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/forgot-password/$email'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/forgot-password/$email'),
         headers: {"Content-Type": "application/json"},
       );
 

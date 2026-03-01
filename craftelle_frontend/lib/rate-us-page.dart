@@ -15,7 +15,7 @@ class RateUsPage extends StatefulWidget {
 class _RateUsPageState extends State<RateUsPage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
-  static const _ratingsUrl = 'https://neurosense-palsy.fly.dev/api/v1/ratings';
+  static const _ratingsUrl = 'https://craftelle.fly.dev/api/v1/ratings';
 
   int _serviceRating = 0;
   bool _hasExistingServiceRating = false;

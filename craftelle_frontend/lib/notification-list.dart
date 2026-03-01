@@ -23,7 +23,7 @@ class _NotificationListPageState extends State<NotificationListPage> {
 
   Future<void> fetchNotifications() async {
     try {
-      final response = await http.get(Uri.parse('https://neurosense-palsy.fly.dev/api/v1/notifications'));
+      final response = await http.get(Uri.parse('https://craftelle.fly.dev/api/v1/notifications'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

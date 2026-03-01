@@ -35,7 +35,7 @@ class _NotificationsByRolePageState extends State<NotificationsByRolePage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/notifications/role/$selectedRole'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/notifications/role/$selectedRole'),
       );
 
       if (response.statusCode == 200) {

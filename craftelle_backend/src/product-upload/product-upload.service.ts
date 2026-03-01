@@ -70,12 +70,21 @@ export class ProductUploadService {
     }
   }
 
-  async update(id: string, updateData: Partial<CreateProductDto>) {
+  async update(id: string, updateData: Partial<CreateProductDto> & { sellerEmail?: string }) {
     try {
-      const product = await this.productRepository.updateOne(id, updateData);
-      if (!product) {
+      const existing = await this.productRepository.findById(id);
+      if (!existing) {
         throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
       }
+
+      if (!updateData.sellerEmail || updateData.sellerEmail !== existing.sellerEmail) {
+        throw new HttpException(
+          'Only the seller who created this product can update it',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      const product = await this.productRepository.updateOne(id, updateData);
       return {
         success: true,
         message: 'Product updated successfully',
@@ -89,12 +98,21 @@ export class ProductUploadService {
     }
   }
 
-  async delete(id: string) {
+  async delete(id: string, sellerEmail?: string) {
     try {
-      const product = await this.productRepository.deleteOne(id);
-      if (!product) {
+      const existing = await this.productRepository.findById(id);
+      if (!existing) {
         throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
       }
+
+      if (!sellerEmail || sellerEmail !== existing.sellerEmail) {
+        throw new HttpException(
+          'Only the seller who created this product can delete it',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      const product = await this.productRepository.deleteOne(id);
       return {
         success: true,
         message: 'Product deleted successfully',

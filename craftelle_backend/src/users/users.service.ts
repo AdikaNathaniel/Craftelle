@@ -26,6 +26,21 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
+      // Only 1 seller and 1 admin allowed
+      if (createUserDto.type === userTypes.SELLER) {
+        const existingSeller = await this.userDB.findOne({ type: userTypes.SELLER });
+        if (existingSeller) {
+          throw new Error('A seller account already exists. Only one seller is allowed.');
+        }
+      }
+
+      if (createUserDto.type === userTypes.ADMIN) {
+        const existingAdmin = await this.userDB.findOne({ type: userTypes.ADMIN });
+        if (existingAdmin) {
+          throw new Error('An admin account already exists. Only one admin is allowed.');
+        }
+      }
+
       createUserDto.password = await generateHashPassword(createUserDto.password);
 
       const user = await this.userDB.findOne({ name: createUserDto.name });
@@ -71,7 +86,7 @@ export class UsersService {
     try {
       const userExists = await this.userDB.findOne({ email });
       if (!userExists) {
-        throw new Error('Invalid email or password');
+        throw new Error('No account found with this email. Please create an account to continue.');
       }
 
       if (userExists.lockUntil && userExists.lockUntil > new Date()) {

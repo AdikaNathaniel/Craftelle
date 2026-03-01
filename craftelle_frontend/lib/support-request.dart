@@ -24,7 +24,7 @@ class _SupportRequestsPageState extends State<SupportRequestsPage> {
 
   Future<void> fetchSupportRequests() async {
     final response =
-        await http.get(Uri.parse('https://neurosense-palsy.fly.dev/api/v1/support'));
+        await http.get(Uri.parse('https://craftelle.fly.dev/api/v1/support'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);

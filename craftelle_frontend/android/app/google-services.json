@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:1098533425835:android:756cb829a69b677fc61dee",
+        "android_client_info": {
+          "package_name": "com.craftelle.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASvG1vU5KzHLvHwAqPUjiN4KfFsVmWB9c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:1098533425835:android:95ee44e3e5353ebcc61dee",
         "android_client_info": {
           "package_name": "com.example.patient_monitor"

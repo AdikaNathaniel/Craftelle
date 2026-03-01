@@ -157,7 +157,7 @@ class OrderPdfGenerator {
                     borderRadius: pw.BorderRadius.circular(4),
                   ),
                   child: pw.Text(
-                    'Wish List',
+                    'Extras',
                     style: pw.TextStyle(
                       fontSize: 14,
                       fontWeight: pw.FontWeight.bold,
@@ -166,20 +166,35 @@ class OrderPdfGenerator {
                   ),
                 ),
                 pw.SizedBox(height: 6),
-                ...order.wishListItems.map((text) => pw.Padding(
-                      padding: const pw.EdgeInsets.only(bottom: 4),
-                      child: pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text('  -  ',
-                              style: pw.TextStyle(color: _pinkDark)),
-                          pw.Expanded(
-                            child: pw.Text(text,
-                                style: const pw.TextStyle(fontSize: 12)),
+                ...order.wishListItems.map((item) {
+                  return pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 6),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text('  -  ',
+                                style: pw.TextStyle(color: _pinkDark)),
+                            pw.Expanded(
+                              child: pw.Text(item.text,
+                                  style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                        if (item.specifications.isNotEmpty)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 24, top: 2),
+                            child: pw.Text(
+                              item.specifications,
+                              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+                            ),
                           ),
-                        ],
-                      ),
-                    )),
+                      ],
+                    ),
+                  );
+                }),
                 pw.SizedBox(height: 14),
               ],
 

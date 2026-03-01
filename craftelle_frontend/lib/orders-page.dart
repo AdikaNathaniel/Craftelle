@@ -214,7 +214,7 @@ class _OrdersPageState extends State<OrdersPage> {
                       Icon(Icons.list_alt, size: 16, color: _pinkDark),
                       const SizedBox(width: 6),
                       const Text(
-                        'Wish List',
+                        'Extras',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -224,7 +224,7 @@ class _OrdersPageState extends State<OrdersPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  ...order.wishListItems.map((text) => _buildWishRow(text)),
+                  ...order.wishListItems.map((item) => _buildWishRow(item)),
                 ],
               ),
             ),
@@ -376,7 +376,7 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
-  Widget _buildWishRow(String text) {
+  Widget _buildWishRow(OrderWishListItem item) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -395,16 +395,43 @@ class _OrdersPageState extends State<OrdersPage> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF374151),
-                height: 1.4,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.text,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF374151),
+                    height: 1.4,
+                  ),
+                ),
+                if (item.specifications.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  _buildExtraTag(item.specifications),
+                ],
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildExtraTag(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: _pink.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          color: Color(0xFF6B7280),
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

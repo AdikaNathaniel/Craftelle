@@ -21,7 +21,7 @@ class _SupportFormPageState extends State<SupportFormPage> {
 
     setState(() => _isLoading = true);
 
-    final url = Uri.parse('https://neurosense-palsy.fly.dev/api/v1/support');
+    final url = Uri.parse('https://craftelle.fly.dev/api/v1/support');
 
     final response = await http.post(
       url,

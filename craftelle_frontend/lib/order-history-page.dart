@@ -16,7 +16,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
   static const _bg = Color(0xFFFFF1F2);
-  static const _baseUrl = 'https://neurosense-palsy.fly.dev/api/v1/orders';
+  static const _baseUrl = 'https://craftelle.fly.dev/api/v1/orders';
 
   List<dynamic> _orders = [];
   bool _isLoading = true;

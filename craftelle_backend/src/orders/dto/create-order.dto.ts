@@ -38,6 +38,16 @@ export class OrderItemDto {
   sellerEmail?: string;
 }
 
+export class WishListItemDto {
+  @IsNotEmpty()
+  @IsString()
+  text: string;
+
+  @IsOptional()
+  @IsString()
+  specifications?: string;
+}
+
 export class CreateOrderDto {
   @IsNotEmpty()
   @IsString()
@@ -51,8 +61,7 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  wishListItems?: string[];
+  wishListItems?: any[];
 
   @IsOptional()
   @IsNumber()

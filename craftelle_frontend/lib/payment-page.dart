@@ -41,7 +41,7 @@ class _PaymentPageState extends State<PaymentPage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
   static const _bg = Color(0xFFFFF1F2);
-  static const _baseUrl = 'https://neurosense-palsy.fly.dev/api/v1';
+  static const _baseUrl = 'https://craftelle.fly.dev/api/v1';
   static const _callbackUrl = 'https://craftelle.app/payment/callback';
 
   bool _isLoading = false;

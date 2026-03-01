@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Craftelle API",
-    "description": "Complete API collection for the Craftelle backend.\n\nBase URL variable `{{baseUrl}}` defaults to `http://localhost:9090/api/v1`.\nChange it to `https://neurosense-palsy.fly.dev/api/v1` for production.",
+    "description": "Complete API collection for the Craftelle backend.\n\nBase URL variable `{{baseUrl}}` defaults to `http://localhost:9090/api/v1`.\nChange it to `https://craftelle.fly.dev/api/v1` for production.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

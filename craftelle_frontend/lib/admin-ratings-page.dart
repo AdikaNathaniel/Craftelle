@@ -13,7 +13,7 @@ class _AdminRatingsPageState extends State<AdminRatingsPage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
   static const _ratingsUrl =
-      'https://neurosense-palsy.fly.dev/api/v1/ratings';
+      'https://craftelle.fly.dev/api/v1/ratings';
 
   bool _isLoading = true;
   List<Map<String, dynamic>> _ratings = [];

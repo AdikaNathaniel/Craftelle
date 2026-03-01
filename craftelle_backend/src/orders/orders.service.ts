@@ -41,10 +41,21 @@ export class OrderService {
         }
       }
 
+      // Normalize wishListItems: handle both plain strings and structured objects
+      const normalizedWishList = (createOrderDto.wishListItems || []).map(
+        (item) =>
+          typeof item === 'string'
+            ? { text: item, specifications: '' }
+            : {
+                text: item.text || '',
+                specifications: item.specifications || '',
+              },
+      );
+
       const newOrder = new this.orderDB({
         customerEmail: createOrderDto.customerEmail,
         items: createOrderDto.items || [],
-        wishListItems: createOrderDto.wishListItems || [],
+        wishListItems: normalizedWishList,
         totalPrice: createOrderDto.totalPrice || 0,
         status: 'Pending',
         deliveryCity: createOrderDto.deliveryCity || '',

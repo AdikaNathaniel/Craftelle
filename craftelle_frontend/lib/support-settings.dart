@@ -28,7 +28,7 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
     setState(() => _isLoading = true);
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/support'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/support'),
       );
 
       if (response.statusCode == 200) {

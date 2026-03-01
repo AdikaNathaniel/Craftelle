@@ -1,13 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'predictions.dart'; 
-import 'health_metrics.dart';
-import 'users_summary.dart'; 
-import 'pregnancy-calculator.dart';
 import 'admin-home.dart';
-import 'awopa-summarised.dart';
-import 'facilities-list.dart';
+import 'customer-home.dart';
+import 'seller-home.dart';
 import 'analytics-home.dart';
 
 class LoginPinPage extends StatefulWidget {
@@ -39,7 +35,7 @@ class _LoginPinPageState extends State<LoginPinPage> {
     });
 
     try {
-      final url = Uri.parse('https://neurosense-palsy.fly.dev/api/v1/pin/verify');
+      final url = Uri.parse('https://craftelle.fly.dev/api/v1/pin/verify');
       final body = jsonEncode({
         'userId': widget.userEmail,
         'pin': pinController.text.trim(),
@@ -101,20 +97,14 @@ class _LoginPinPageState extends State<LoginPinPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => FacilitiesListPage(
-            userEmail: widget.userEmail,
-            userType: 'Customer',
-          ),
+          builder: (context) => CustomerHomePage(userEmail: widget.userEmail),
         ),
       );
     } else if (userType == 'seller') {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => FacilitiesListPage(
-            userEmail: widget.userEmail,
-            userType: 'Seller',
-          ),
+          builder: (context) => SellerHomePage(userEmail: widget.userEmail),
         ),
       );
     } else if (userType == 'analyst') {

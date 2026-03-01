@@ -17,7 +17,7 @@ class AnalyticsHomePage extends StatefulWidget {
 }
 
 class _AnalyticsHomePageState extends State<AnalyticsHomePage> {
-  static const String _baseUrl = 'https://neurosense-palsy.fly.dev';
+  static const String _baseUrl = 'https://craftelle.fly.dev';
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic> _summary = {};

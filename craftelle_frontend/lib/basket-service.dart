@@ -67,13 +67,25 @@ class BasketItem {
 class WishListItem {
   final String id;
   final String text;
+  final String specifications;
 
-  WishListItem({required this.id, required this.text});
+  WishListItem({
+    required this.id,
+    required this.text,
+    this.specifications = '',
+  });
 
-  Map<String, dynamic> toJson() => {'id': id, 'text': text};
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'text': text,
+        'specifications': specifications,
+      };
 
-  factory WishListItem.fromJson(Map<String, dynamic> json) =>
-      WishListItem(id: json['id'], text: json['text']);
+  factory WishListItem.fromJson(Map<String, dynamic> json) => WishListItem(
+        id: json['id'] ?? '',
+        text: json['text'] ?? '',
+        specifications: json['specifications'] ?? '',
+      );
 }
 
 class BasketService {
@@ -169,10 +181,14 @@ class BasketService {
     _notifyListeners();
   }
 
-  Future<void> addWishListItem(String text) async {
+  Future<void> addWishListItem(
+    String text, {
+    String specifications = '',
+  }) async {
     _wishList.add(WishListItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       text: text,
+      specifications: specifications,
     ));
     await _save();
     _notifyListeners();

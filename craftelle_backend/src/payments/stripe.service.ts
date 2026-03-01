@@ -37,7 +37,7 @@ export class StripeService {
           },
         ],
         mode: 'payment',
-        success_url: 'https://neurosense-palsy.fly.dev/api/v1/payment-success?session_id={CHECKOUT_SESSION_ID}',
+        success_url: 'https://craftelle.fly.dev/api/v1/payment-success?session_id={CHECKOUT_SESSION_ID}',
         cancel_url: 'http://localhost:3000/api/v1/payment-cancelled',
         customer_email: email,
       });

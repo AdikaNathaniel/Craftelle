@@ -60,7 +60,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   Future<void> _checkUserLocation() async {
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/profile/${widget.userEmail}'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/profile/${widget.userEmail}'),
         headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {
@@ -127,7 +127,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   Future<void> _saveUserLocation(SelectedLocation location) async {
     try {
       await http.patch(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/update-profile'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/update-profile'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email': widget.userEmail,
@@ -348,7 +348,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   Navigator.pop(context);
                   try {
                     await http.put(
-                      Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/logout'),
+                      Uri.parse('https://craftelle.fly.dev/api/v1/users/logout'),
                       headers: {'Content-Type': 'application/json'},
                     );
                   } catch (_) {}

@@ -27,6 +27,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
 
   final _basket = BasketService();
   final _wishListController = TextEditingController();
+  final _specificationsController = TextEditingController();
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
   void dispose() {
     _basket.removeListener(_onBasketChanged);
     _wishListController.dispose();
+    _specificationsController.dispose();
     super.dispose();
   }
 
@@ -127,7 +129,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
     final confirmed = await CraftelleDialog.showConfirmation(
       context,
       title: 'Place Order',
-      message: 'Your basket items and wish list will be submitted as one order.',
+      message: 'Your basket items and extras will be submitted as one order.',
       confirmText: 'Continue',
       cancelText: 'Cancel',
     );
@@ -145,7 +147,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
 
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/profile/${widget.customerEmail}'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/profile/${widget.customerEmail}'),
         headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {
@@ -494,7 +496,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add items from Our Masterpieces\nor create a wish list below',
+            'Add items from Our Masterpieces\nor create an extras list below',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -763,7 +765,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
               Icon(Icons.list_alt, color: _pinkDark, size: 22),
               const SizedBox(width: 8),
               const Text(
-                'My Wish List',
+                'My Extras',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
@@ -810,7 +812,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                   Icon(Icons.edit_note, size: 36, color: _pink.withOpacity(0.4)),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap the pencil to add items\nto your wish list',
+                    'Tap the pencil to add items\nto your extras',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[500],
@@ -832,8 +834,8 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                 onPressed: () async {
                   final confirmed = await CraftelleDialog.showConfirmation(
                     context,
-                    title: 'Clear Wish List',
-                    message: 'Remove all items from your wish list?',
+                    title: 'Clear Extras',
+                    message: 'Remove all items from your extras?',
                     confirmText: 'Clear',
                     cancelText: 'Cancel',
                     isDangerous: true,
@@ -862,8 +864,10 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
         border: Border.all(color: _pink.withOpacity(0.2), width: 1),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
+            margin: const EdgeInsets.only(top: 2),
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: _pink.withOpacity(0.1),
@@ -873,115 +877,198 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              item.text,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF374151),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.text,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF374151),
+                  ),
+                ),
+                if (item.specifications.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildDetailChip(Icons.tune, item.specifications),
+                ],
+              ],
             ),
           ),
           GestureDetector(
             onTap: () => _basket.removeWishListItem(item.id),
-            child: Icon(Icons.close, size: 20, color: Colors.grey[400]),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Icon(Icons.close, size: 20, color: Colors.grey[400]),
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildDetailChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: _pink.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _pink.withOpacity(0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: _pinkDark),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF6B7280),
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _extrasFieldDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+      prefixIcon: Icon(icon, color: _pink, size: 20),
+      filled: true,
+      fillColor: _bg,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _pink.withOpacity(0.3)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _pink.withOpacity(0.3)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _pink, width: 2),
+      ),
+    );
+  }
+
   void _showAddWishListDialog() {
     _wishListController.clear();
+    _specificationsController.clear();
+
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: _pink.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.edit, color: _pink, size: 32),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Add to Wish List',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _wishListController,
-                autofocus: true,
-                maxLines: 3,
-                minLines: 1,
-                decoration: InputDecoration(
-                  hintText: 'What would you like?',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  filled: true,
-                  fillColor: _bg,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: _pink.withOpacity(0.3)),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _pink.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: _pink.withOpacity(0.3)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _pink, width: 2),
+                  child: const Icon(Icons.edit, color: _pink, size: 32),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Add to Extras',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 15),
-                      ),
-                    ),
+                const SizedBox(height: 6),
+                Text(
+                  'Describe what you\'d like and optionally specify details',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+
+                // Item description (required)
+                TextField(
+                  controller: _wishListController,
+                  autofocus: true,
+                  maxLines: 2,
+                  minLines: 1,
+                  decoration: _extrasFieldDecoration(
+                    hint: 'What would you like?',
+                    icon: Icons.shopping_bag_outlined,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final text = _wishListController.text.trim();
-                        if (text.isNotEmpty) {
-                          _basket.addWishListItem(text);
-                          Navigator.pop(ctx);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _pink,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                ),
+                const SizedBox(height: 12),
+
+                // Specifications (optional)
+                TextField(
+                  controller: _specificationsController,
+                  maxLines: 3,
+                  minLines: 2,
+                  decoration: _extrasFieldDecoration(
+                    hint: 'Other specifications (optional)',
+                    icon: Icons.tune,
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 15),
                         ),
                       ),
-                      child: const Text(
-                        'Add to List',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final text = _wishListController.text.trim();
+                          if (text.isNotEmpty) {
+                            _basket.addWishListItem(
+                              text,
+                              specifications: _specificationsController.text.trim(),
+                            );
+                            Navigator.pop(ctx);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _pink,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Add to List',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

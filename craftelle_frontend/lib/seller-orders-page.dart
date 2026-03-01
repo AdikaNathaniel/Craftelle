@@ -308,7 +308,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                       Icon(Icons.list_alt, size: 16, color: _pinkDark),
                       const SizedBox(width: 6),
                       const Text(
-                        'Wish List',
+                        'Extras',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -318,8 +318,8 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  ...order.wishListItems.map((text) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
+                  ...order.wishListItems.map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -336,13 +336,22 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                text,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFF374151),
-                                  height: 1.4,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.text,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Color(0xFF374151),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  if (item.specifications.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    _buildExtraTag(item.specifications),
+                                  ],
+                                ],
                               ),
                             ),
                           ],
@@ -609,6 +618,24 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildExtraTag(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: _pink.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          color: Color(0xFF6B7280),
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

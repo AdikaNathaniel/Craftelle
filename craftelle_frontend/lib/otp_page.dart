@@ -35,7 +35,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       _isLoading = true;
     });
 
-    final url = Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/verify-email/$_otp/${widget.email}');
+    final url = Uri.parse('https://craftelle.fly.dev/api/v1/users/verify-email/$_otp/${widget.email}');
     try {
       final response = await http.get(url);
       final data = json.decode(response.body);

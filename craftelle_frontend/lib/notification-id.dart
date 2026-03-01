@@ -31,7 +31,7 @@ class _NotificationByIdPageState extends State<NotificationByIdPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/notifications/${_idController.text.trim()}'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/notifications/${_idController.text.trim()}'),
       );
 
       if (response.statusCode == 200) {

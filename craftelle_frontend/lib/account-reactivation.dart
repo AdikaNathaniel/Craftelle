@@ -265,7 +265,7 @@ class _AccountReactivationPageState extends State<AccountReactivationPage> {
     try {
       final response = await http.put(
         Uri.parse(
-            'https://neurosense-palsy.fly.dev/api/v1/users/reactivate-account/$userEmail'),
+            'https://craftelle.fly.dev/api/v1/users/reactivate-account/$userEmail'),
         headers: {
           'Content-Type': 'application/json',
         },

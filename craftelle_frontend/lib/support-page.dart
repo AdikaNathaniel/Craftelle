@@ -20,7 +20,7 @@ class _SupportPageState extends State<SupportPage> {
   static const _pink = Color(0xFFFDA4AF);
   static const _pinkDark = Color(0xFFFB7185);
   static const _bg = Color(0xFFFFF1F2);
-  static const _baseUrl = 'https://neurosense-palsy.fly.dev/api/v1';
+  static const _baseUrl = 'https://craftelle.fly.dev/api/v1';
 
   final _messageController = TextEditingController();
   bool _isSending = false;

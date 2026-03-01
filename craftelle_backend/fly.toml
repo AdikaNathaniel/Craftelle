@@ -1,4 +1,4 @@
-app = "neurosense-palsy"
+app = "craftelle"
 
 [build]
   dockerfile = "Dockerfile"

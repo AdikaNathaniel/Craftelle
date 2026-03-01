@@ -68,7 +68,7 @@ export class ProductUploadController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateData: Partial<CreateProductDto>,
+    @Body() updateData: Partial<CreateProductDto> & { sellerEmail?: string },
   ) {
     try {
       return await this.productUploadService.update(id, updateData);
@@ -78,22 +78,25 @@ export class ProductUploadController {
           success: false,
           message: error.message,
         },
-        HttpStatus.BAD_REQUEST,
+        error.status || HttpStatus.BAD_REQUEST,
       );
     }
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string) {
+  async delete(
+    @Param('id') id: string,
+    @Body() body: { sellerEmail?: string },
+  ) {
     try {
-      return await this.productUploadService.delete(id);
+      return await this.productUploadService.delete(id, body?.sellerEmail);
     } catch (error) {
       throw new HttpException(
         {
           success: false,
           message: error.message,
         },
-        HttpStatus.BAD_REQUEST,
+        error.status || HttpStatus.BAD_REQUEST,
       );
     }
   }

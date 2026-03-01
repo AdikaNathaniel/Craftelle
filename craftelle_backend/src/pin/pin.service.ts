@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ForbiddenException, Inject, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Pin } from 'src/shared/schema/pin.schema';
@@ -7,8 +7,6 @@ import { VerifyPinDto } from 'src/users/dto/verify-pin.dto';
 import { UpdatePinDto } from 'src/users/dto/update-pin.dto';
 import { PIN_LENGTH } from 'src/pin/pin.constants';
 import * as bcrypt from 'bcrypt';
-import { AntenatalVisitSmsService } from 'src/visit/antenatal-visit-sms.service';
-import { SmsNotificationDto } from 'src/users/dto/sms-notification.dto';
 
 @Injectable()
 export class PinService {
@@ -18,26 +16,7 @@ export class PinService {
 
   constructor(
     @InjectModel(Pin.name) private pinModel: Model<Pin>,
-    @Inject(AntenatalVisitSmsService)
-    private readonly smsService: AntenatalVisitSmsService,
   ) {}
-
-  private async sendPinNotification(phone: string, pin: string, action: 'created' | 'updated'): Promise<void> {
-    if (!phone) {
-      this.logger.error(`Cannot send PIN ${action} notification: Phone number is undefined`);
-      return;
-    }
-
-    const message = `Your PIN has been ${action}. Please do not share it with anyone.`;
-    
-    try {
-      await this.smsService.sendSms(phone, message);
-      this.logger.log(`PIN ${action} SMS sent to ${phone}`);
-    } catch (error) {
-      this.logger.error(`Failed to send PIN ${action} SMS to ${phone}: ${error.message}`);
-      // Don't throw error - SMS failure shouldn't prevent PIN operation
-    }
-  }
 
   async createPin(createPinDto: CreatePinDto & { phone: string }): Promise<{ message: string }> {
     const { userId, pin, phone } = createPinDto;
@@ -63,9 +42,6 @@ export class PinService {
       lastAttempt: null,
       lockedUntil: null,
     });
-
-    // Send SMS notification
-    await this.sendPinNotification(phone, pin, 'created');
 
     return { message: 'PIN created successfully' };
   }
@@ -143,39 +119,13 @@ export class PinService {
     userPin.lockedUntil = null;
     await userPin.save();
 
-    // Send SMS notification
-    await this.sendPinNotification(phone, newPin, 'updated');
-
     return { message: 'PIN updated successfully' };
   }
 
   async deletePin(userId: string): Promise<{ message: string }> {
-    // First, find the pin document to get the phone number
-    const pinDocument = await this.pinModel.findOne({ userId });
-    if (!pinDocument) {
-      throw new BadRequestException('No PIN found for this user');
-    }
-    
-    // Get the phone number from the pin document
-    const phone = pinDocument.phone;
-    
-    // Delete the pin document
     const result = await this.pinModel.deleteOne({ userId });
     if (result.deletedCount === 0) {
-      throw new BadRequestException('Failed to delete PIN');
-    }
-
-    try {
-      if (phone) {
-        const message = 'Your PIN has been deleted successfully.';
-        await this.smsService.sendSms(phone, message);
-        this.logger.log(`PIN deletion SMS sent to ${phone}`);
-      } else {
-        this.logger.warn(`Cannot send PIN deletion SMS: No phone number found in PIN document`);
-      }
-    } catch (error) {
-      this.logger.error(`Failed to send PIN deletion SMS to ${phone}: ${error.message}`);
-      // Don't throw error - SMS failure shouldn't prevent PIN deletion
+      throw new BadRequestException('No PIN found for this user');
     }
 
     return { message: 'PIN deleted successfully' };

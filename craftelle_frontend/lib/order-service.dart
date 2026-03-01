@@ -68,11 +68,37 @@ class OrderItem {
       );
 }
 
+class OrderWishListItem {
+  final String text;
+  final String specifications;
+
+  OrderWishListItem({
+    required this.text,
+    this.specifications = '',
+  });
+
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'specifications': specifications,
+      };
+
+  factory OrderWishListItem.fromJson(dynamic json) {
+    if (json is String) {
+      return OrderWishListItem(text: json);
+    }
+    final map = json as Map<String, dynamic>;
+    return OrderWishListItem(
+      text: map['text'] ?? '',
+      specifications: map['specifications'] ?? '',
+    );
+  }
+}
+
 class Order {
   final String id;
   final DateTime createdAt;
   final List<OrderItem> items;
-  final List<String> wishListItems;
+  final List<OrderWishListItem> wishListItems;
   final double totalPrice;
   final String customerEmail;
   final String deliveryCity;
@@ -107,7 +133,7 @@ class Order {
         'id': id,
         'createdAt': createdAt.toIso8601String(),
         'items': items.map((e) => e.toJson()).toList(),
-        'wishListItems': wishListItems,
+        'wishListItems': wishListItems.map((e) => e.toJson()).toList(),
         'totalPrice': totalPrice,
         'customerEmail': customerEmail,
         'deliveryCity': deliveryCity,
@@ -129,7 +155,9 @@ class Order {
         items: (json['items'] as List? ?? [])
             .map((e) => OrderItem.fromJson(e))
             .toList(),
-        wishListItems: List<String>.from(json['wishListItems'] ?? []),
+        wishListItems: (json['wishListItems'] as List? ?? [])
+            .map((e) => OrderWishListItem.fromJson(e))
+            .toList(),
         totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
         customerEmail: json['customerEmail'] ?? '',
         deliveryCity: json['deliveryCity'] ?? '',
@@ -150,7 +178,7 @@ class OrderService {
   OrderService._internal();
 
   static const String _baseUrl =
-      'https://neurosense-palsy.fly.dev/api/v1/orders';
+      'https://craftelle.fly.dev/api/v1/orders';
 
   final List<Order> _orders = [];
   final List<VoidCallback> _listeners = [];
@@ -223,7 +251,10 @@ class OrderService {
         body: json.encode({
           'customerEmail': _customerEmail,
           'items': orderItems.map((e) => e.toJson()).toList(),
-          'wishListItems': wishList.map((e) => e.text).toList(),
+          'wishListItems': wishList.map((e) => {
+                'text': e.text,
+                'specifications': e.specifications,
+              }).toList(),
           'totalPrice': totalPrice,
           'deliveryCity': deliveryCity,
           'deliveryRegion': deliveryRegion,
@@ -254,7 +285,10 @@ class OrderService {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       createdAt: DateTime.now(),
       items: orderItems,
-      wishListItems: wishList.map((e) => e.text).toList(),
+      wishListItems: wishList.map((e) => OrderWishListItem(
+        text: e.text,
+        specifications: e.specifications,
+      )).toList(),
       totalPrice: totalPrice,
       customerEmail: _customerEmail,
       deliveryCity: deliveryCity,

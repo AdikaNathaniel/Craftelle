@@ -31,7 +31,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   Future<void> _logout(BuildContext context) async {
     try {
       final response = await http.put(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/logout'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/logout'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -293,7 +293,7 @@ class _UserListPageState extends State<UserListPage> {
     try {
       print('DEBUG: Fetching users from API...');
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -377,10 +377,10 @@ class _UserListPageState extends State<UserListPage> {
     await fetchUsers();
   }
 
-  Future<void> _deleteUser(String userId, String userName) async {
+  Future<void> _deleteUser(String userEmail, String userName) async {
     try {
       final response = await http.delete(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/$userId'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/delete-account/$userEmail'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -424,7 +424,7 @@ class _UserListPageState extends State<UserListPage> {
     );
 
     if (confirmed) {
-      _deleteUser(user.id, user.name);
+      _deleteUser(user.email, user.name);
     }
   }
 

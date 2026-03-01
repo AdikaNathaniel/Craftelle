@@ -25,7 +25,7 @@ class _UpdatePasswordPageState extends State<UpdatePasswordPage> {
 
     try {
       final response = await http.patch(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/update-password-or-name'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/update-password-or-name'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           "email": _emailController.text.trim(),

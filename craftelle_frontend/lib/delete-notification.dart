@@ -15,7 +15,7 @@ class _DeleteNotificationPageState extends State<DeleteNotificationPage> {
 
   Future<void> _deleteNotification(String id) async {
     try {
-      final url = Uri.parse("https://neurosense-palsy.fly.dev/api/v1/notifications/$id");
+      final url = Uri.parse("https://craftelle.fly.dev/api/v1/notifications/$id");
       final response = await http.delete(url);
 
       if (response.statusCode == 200) {

@@ -32,8 +32,8 @@ class _ChatContactsPageState extends State<ChatContactsPage>
   IO.Socket? socket;
   final TextEditingController _searchController = TextEditingController();
 
-  final String apiUrl = 'https://neurosense-palsy.fly.dev/api/v1';
-  final String socketUrl = 'https://neurosense-palsy.fly.dev';
+  final String apiUrl = 'https://craftelle.fly.dev/api/v1';
+  final String socketUrl = 'https://craftelle.fly.dev';
 
   @override
   void initState() {

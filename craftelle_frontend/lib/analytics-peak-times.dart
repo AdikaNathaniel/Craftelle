@@ -12,7 +12,7 @@ class AnalyticsPeakTimesPage extends StatefulWidget {
 }
 
 class _AnalyticsPeakTimesPageState extends State<AnalyticsPeakTimesPage> {
-  static const String _baseUrl = 'https://neurosense-palsy.fly.dev';
+  static const String _baseUrl = 'https://craftelle.fly.dev';
   bool _isLoading = true;
   String? _error;
   List<dynamic> _byHour = [];

@@ -25,7 +25,7 @@ export default function OTPVerification() {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `https://neurosense-palsy.fly.dev/api/v1/users/verify-email/${otp}/${email}`
+        `https://craftelle.fly.dev/api/v1/users/verify-email/${otp}/${email}`
       );
       const data = response.data;
 

@@ -25,7 +25,7 @@ class ChatConversationPage extends StatefulWidget {
 }
 
 class _ChatConversationPageState extends State<ChatConversationPage> {
-  static const String _baseUrl = 'https://neurosense-palsy.fly.dev';
+  static const String _baseUrl = 'https://craftelle.fly.dev';
 
   late IO.Socket socket;
   List<Map<String, dynamic>> messages = [];

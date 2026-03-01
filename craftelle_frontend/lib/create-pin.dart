@@ -27,7 +27,7 @@ class _CreatePinPageState extends State<CreatePinPage> {
       return;
     }
 
-    final url = Uri.parse('https://neurosense-palsy.fly.dev/api/v1/pin');
+    final url = Uri.parse('https://craftelle.fly.dev/api/v1/pin');
     final body = {
       "userId": _userIdController.text.trim(),
       "pin": _pin,

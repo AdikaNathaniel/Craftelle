@@ -1,4 +1,4 @@
-name: Fly.io Usage Monitor
+name: Craftelle Fly.io Usage Monitor
 
 on:
   schedule:
@@ -18,5 +18,5 @@ jobs:
         run: |
           echo "Checking Fly.io usage..."
           fly billing show
-          fly machines list -a neurosense-palsy
-          fly status -a neurosense-palsy
+          fly machines list -a craftelle
+          fly status -a craftelle

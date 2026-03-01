@@ -3,6 +3,14 @@ import { Document } from 'mongoose';
 
 export type OrderDocument = Order & Document;
 
+export class WishListItemSchema {
+  @Prop({ required: true })
+  text: string;
+
+  @Prop({ default: '' })
+  specifications: string;
+}
+
 export class OrderItemSchema {
   @Prop({ required: true })
   productName: string;
@@ -34,8 +42,8 @@ export class Order {
   @Prop({ type: [OrderItemSchema], default: [] })
   items: OrderItemSchema[];
 
-  @Prop({ type: [String], default: [] })
-  wishListItems: string[];
+  @Prop({ type: [WishListItemSchema], default: [] })
+  wishListItems: WishListItemSchema[];
 
   @Prop({ default: 0 })
   totalPrice: number;

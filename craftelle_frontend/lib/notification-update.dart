@@ -22,7 +22,7 @@ class _NotificationUpdatePageState extends State<NotificationUpdatePage> {
 
     try {
       final response = await http.put(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/notifications/${_idController.text.trim()}'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/notifications/${_idController.text.trim()}'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'message': _messageController.text.trim(),

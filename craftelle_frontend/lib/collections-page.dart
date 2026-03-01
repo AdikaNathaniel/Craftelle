@@ -45,7 +45,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
 
     try {
       final response = await http.get(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/products'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/products'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -81,7 +81,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
       if (productId == null) continue;
       try {
         final response = await http.get(
-          Uri.parse('https://neurosense-palsy.fly.dev/api/v1/ratings/product/$productId/average'),
+          Uri.parse('https://craftelle.fly.dev/api/v1/ratings/product/$productId/average'),
           headers: {'Content-Type': 'application/json'},
         );
         if (response.statusCode == 200) {
@@ -129,8 +129,9 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
   Future<void> _deleteProduct(String productId) async {
     try {
       final response = await http.delete(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/products/$productId'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/products/$productId'),
         headers: {'Content-Type': 'application/json'},
+        body: json.encode({'sellerEmail': widget.userEmail}),
       );
 
       if (response.statusCode == 200) {
@@ -386,8 +387,9 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
 
   Future<void> _updateProduct(String productId, Map<String, dynamic> updateData) async {
     try {
+      updateData['sellerEmail'] = widget.userEmail;
       final response = await http.put(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/products/$productId'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/products/$productId'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(updateData),
       );
@@ -562,7 +564,7 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Top Row - Edit and Delete Icons
-                          if (widget.isAdminView || (widget.isSellerView && product['sellerEmail'] == widget.userEmail))
+                          if (widget.isSellerView && product['sellerEmail'] == widget.userEmail)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

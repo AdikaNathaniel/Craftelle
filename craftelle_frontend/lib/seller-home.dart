@@ -31,7 +31,7 @@ class _SellerHomePageState extends State<SellerHomePage> {
   Future<void> _logout(BuildContext context) async {
     try {
       final response = await http.put(
-        Uri.parse('https://neurosense-palsy.fly.dev/api/v1/users/logout'),
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/logout'),
         headers: {'Content-Type': 'application/json'},
       );
 
