@@ -22,20 +22,7 @@ class OrderItem {
     this.sellerEmail = '',
   });
 
-  String get displaySize {
-    switch (selectedSize) {
-      case 'small':
-        return 'Small';
-      case 'medium':
-        return 'Medium';
-      case 'large':
-        return 'Large';
-      case 'extraLarge':
-        return 'Extra Large';
-      default:
-        return '';
-    }
-  }
+  String get displaySize => selectedSize ?? '';
 
   Map<String, dynamic> toJson() => {
         'productName': productName,
@@ -105,6 +92,7 @@ class Order {
   final List<OrderWishListItem> wishListItems;
   final double totalPrice;
   final String customerEmail;
+  final String sellerEmail;
   final String deliveryCity;
   final String deliveryRegion;
   final String deliveryAddress;
@@ -126,6 +114,7 @@ class Order {
     required this.wishListItems,
     required this.totalPrice,
     this.customerEmail = '',
+    this.sellerEmail = '',
     this.deliveryCity = '',
     this.deliveryRegion = '',
     this.deliveryAddress = '',
@@ -148,6 +137,7 @@ class Order {
         'wishListItems': wishListItems.map((e) => e.toJson()).toList(),
         'totalPrice': totalPrice,
         'customerEmail': customerEmail,
+        'sellerEmail': sellerEmail,
         'deliveryCity': deliveryCity,
         'deliveryRegion': deliveryRegion,
         'deliveryAddress': deliveryAddress,
@@ -176,6 +166,7 @@ class Order {
             .toList(),
         totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
         customerEmail: json['customerEmail'] ?? '',
+        sellerEmail: json['sellerEmail'] ?? '',
         deliveryCity: json['deliveryCity'] ?? '',
         deliveryRegion: json['deliveryRegion'] ?? '',
         deliveryAddress: json['deliveryAddress'] ?? '',
@@ -264,12 +255,16 @@ class OrderService {
     final totalPrice = basketItems.fold(
         0.0, (sum, item) => sum + (item.price * item.quantity));
 
+    // Get seller email from basket items
+    final sellerEmail = basketItems.isNotEmpty ? basketItems.first.sellerEmail : '';
+
     try {
       final response = await http.post(
         Uri.parse(_baseUrl),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'customerEmail': _customerEmail,
+          'sellerEmail': sellerEmail,
           'items': orderItems.map((e) => e.toJson()).toList(),
           'wishListItems': wishList.map((e) => {
                 'text': e.text,

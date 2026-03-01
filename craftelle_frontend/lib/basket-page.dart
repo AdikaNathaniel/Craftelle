@@ -443,7 +443,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
                                 CraftelleDialog.showSuccess(
                                   context,
                                   title: 'Order Submitted',
-                                  message: 'Your order has been submitted! The seller will review and price your extras. You\'ll receive a notification when your quote is ready.',
+                                  message: 'Order submitted! You\'ll be notified when your quote is ready.',
                                 );
                               }
                             } else {

@@ -1,20 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export class SizePrice {
-  @Prop()
-  small?: number;
-
-  @Prop()
-  medium?: number;
-
-  @Prop()
-  large?: number;
-
-  @Prop()
-  extraLarge?: number;
-}
-
 @Schema({
   timestamps: true,
 })
@@ -31,8 +17,8 @@ export class Product extends Document {
   @Prop({ default: false })
   hasSizes: boolean;
 
-  @Prop({ type: SizePrice })
-  sizePrices?: SizePrice;
+  @Prop({ type: Map, of: Number })
+  sizePrices?: Map<string, number>;
 
   @Prop()
   basePrice?: number;

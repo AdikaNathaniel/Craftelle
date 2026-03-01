@@ -82,7 +82,7 @@ export class UsersService {
     // TODO: Replace with actual email sending logic
     return { success: true, message: 'Account deactivated email sent' };
   }
-  async login(email: string, password: string) {
+  async login(email: string, password: string, type?: string) {
     try {
       const userExists = await this.userDB.findOne({ email });
       if (!userExists) {
@@ -102,8 +102,13 @@ export class UsersService {
         throw new Error('Your account is deactivated. Please contact support.');
       }
 
+      // Validate role matches what was registered
+      if (type && userExists.type.toLowerCase() !== type.toLowerCase()) {
+        throw new Error(`You are not registered as a ${type}. Your account is registered as: ${userExists.type}.`);
+      }
+
       const isPasswordMatch = await comparePassword(password, userExists.password);
-      
+
       if (!isPasswordMatch) {
         const updatedFailedAttempts = userExists.failedLoginAttempts + 1;
         let lockUntil = null;

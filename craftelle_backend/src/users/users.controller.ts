@@ -42,13 +42,14 @@ export class UsersController {
   @Post('/login')
   @HttpCode(HttpStatus.OK)
   async login(
-    @Body() loginUser: { email: string; password: string },
+    @Body() loginUser: { email: string; password: string; type?: string },
     @Res({ passthrough: true }) response: Response,
   ) {
     try {
       const loginRes = await this.usersService.login(
         loginUser.email,
         loginUser.password,
+        loginUser.type,
       );
       
       if (loginRes.success) {
@@ -84,6 +85,14 @@ export class UsersController {
             message: error.message,
           },
           HttpStatus.FORBIDDEN, // 403 for unverified email
+        );
+      } else if (error.message.includes('not registered as')) {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message,
+          },
+          HttpStatus.FORBIDDEN, // 403 for role mismatch
         );
       } else if (error.message.includes('Invalid email or password') || error.message.includes('attempts remaining')) {
         throw new HttpException(

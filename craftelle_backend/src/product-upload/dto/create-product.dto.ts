@@ -4,27 +4,8 @@ import {
   IsBoolean,
   IsOptional,
   IsNumber,
-  ValidateNested,
+  IsObject,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-
-export class SizePriceDto {
-  @IsOptional()
-  @IsNumber()
-  small?: number;
-
-  @IsOptional()
-  @IsNumber()
-  medium?: number;
-
-  @IsOptional()
-  @IsNumber()
-  large?: number;
-
-  @IsOptional()
-  @IsNumber()
-  extraLarge?: number;
-}
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -43,9 +24,8 @@ export class CreateProductDto {
   hasSizes: boolean;
 
   @IsOptional()
-  @ValidateNested()
-  @Type(() => SizePriceDto)
-  sizePrices?: SizePriceDto;
+  @IsObject()
+  sizePrices?: Record<string, number>;
 
   @IsOptional()
   @IsNumber()

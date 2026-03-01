@@ -54,6 +54,10 @@ export class CreateOrderDto {
   customerEmail: string;
 
   @IsOptional()
+  @IsString()
+  sellerEmail?: string;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)

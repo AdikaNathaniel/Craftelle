@@ -288,6 +288,103 @@ export class EmailService {
     }
   }
 
+  async sendNewQuoteOrderToSeller(order: any, sellerEmail: string) {
+    try {
+      const orderDate = order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      const itemsHtml = (order.items || []).map((item: any) => `
+        <tr>
+          <td style="padding: 10px 12px; color: #1F2937; font-size: 14px; border-bottom: 1px solid #FFF1F2;">${item.productName || ''}</td>
+          <td style="padding: 10px 12px; color: #6B7280; font-size: 14px; text-align: center; border-bottom: 1px solid #FFF1F2;">${item.quantity || 1}</td>
+          <td style="padding: 10px 12px; color: #FB7185; font-weight: 600; font-size: 14px; text-align: right; border-bottom: 1px solid #FFF1F2;">GHS ${(item.price || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      const extrasHtml = (order.wishListItems || []).map((item: any) => `
+        <tr>
+          <td style="padding: 10px 12px; color: #1F2937; font-size: 14px; border-bottom: 1px solid #FFF1F2;">${item.text || ''}</td>
+          <td style="padding: 10px 12px; color: #6B7280; font-size: 13px; border-bottom: 1px solid #FFF1F2;">${item.specifications || '-'}</td>
+        </tr>
+      `).join('');
+
+      const bodyContent = `
+        <h2 style="color: #1F2937; margin: 0 0 8px; font-size: 22px;">New Order Requires Pricing!</h2>
+        <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin: 0 0 24px;">
+          A customer has placed an order that includes custom extras. Please review and price the extras in the Craftelle app.
+        </p>
+
+        <div style="background: linear-gradient(135deg, #FFF1F2 0%, #FECDD3 100%); border-radius: 12px; padding: 20px; margin: 0 0 24px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Date</td>
+              <td style="padding: 6px 0; color: #1F2937; font-weight: 600; text-align: right; font-size: 14px;">${orderDate}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Customer</td>
+              <td style="padding: 6px 0; color: #1F2937; font-weight: 600; text-align: right; font-size: 14px;">${order.customerEmail || ''}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Phone</td>
+              <td style="padding: 6px 0; color: #1F2937; font-weight: 600; text-align: right; font-size: 14px;">${order.customerPhone || ''}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #6B7280; font-size: 14px;">Status</td>
+              <td style="padding: 6px 0; color: #F59E0B; font-weight: 600; text-align: right; font-size: 14px;">Awaiting Quote</td>
+            </tr>
+          </table>
+        </div>
+
+        ${(order.items || []).length > 0 ? `
+        <h3 style="color: #1F2937; font-size: 16px; margin: 0 0 12px;">Basket Items</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 20px;">
+          <thead>
+            <tr style="background: #FB7185;">
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Product</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: center;">Qty</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: right;">Price</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        ` : ''}
+
+        <h3 style="color: #1F2937; font-size: 16px; margin: 0 0 12px;">Extras Needing Pricing</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 0 0 24px;">
+          <thead>
+            <tr style="background: #F59E0B;">
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Item</th>
+              <th style="padding: 10px 12px; color: #fff; font-size: 13px; text-align: left;">Specifications</th>
+            </tr>
+          </thead>
+          <tbody>${extrasHtml}</tbody>
+        </table>
+
+        <div style="background: #F9FAFB; border-radius: 8px; padding: 14px 18px; margin: 0 0 16px;">
+          <p style="color: #6B7280; font-size: 13px; margin: 0; line-height: 1.5;">
+            <strong style="color: #1F2937;">Action Required:</strong> Open the Craftelle app, go to <strong>Orders</strong>, and price each extra item. The customer will be notified once you send the quote.
+          </p>
+        </div>
+      `;
+
+      const mailOptions = {
+        from: `"Craftelle" <${process.env.SMTP_USER}>`,
+        to: sellerEmail,
+        subject: 'Craftelle - New Order Requires Pricing',
+        html: this.craftelleEmailTemplate(bodyContent),
+        attachments: [this.getLogoAttachment()],
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`New quote order email sent to seller ${sellerEmail}: ${info.messageId}`);
+      return { success: true, message: 'Seller notification email sent' };
+    } catch (error) {
+      console.error('Failed to send new quote order email to seller:', error);
+      return { success: false, message: error.message };
+    }
+  }
+
   async sendQuoteEmail(order: any) {
     try {
       const pdfBuffer = await this.generateQuotePDF(order);
@@ -450,11 +547,9 @@ export class EmailService {
         </p>
       `;
 
-      // Send to customer
+      // Send to customer and seller (sellerEmail is always resolved fresh from Users DB)
       const recipients = [order.customerEmail];
-      // Also send to seller if available
-      const sellerEmail = (order.items || []).length > 0 ? order.items[0].sellerEmail : null;
-      if (sellerEmail) recipients.push(sellerEmail);
+      if (order.sellerEmail) recipients.push(order.sellerEmail);
 
       const mailOptions = {
         from: `"Craftelle" <${process.env.SMTP_USER}>`,
@@ -493,16 +588,17 @@ export class EmailService {
       const grey = '#6B7280';
       const lightPink = '#FFF1F2';
 
-      // Header
-      doc.rect(0, 0, doc.page.width, 100).fill(pink);
-      doc.fontSize(32).fill('#FFFFFF').text('CRAFTELLE', 50, 30, { align: 'center' });
-      doc.fontSize(12).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 65, { align: 'center' });
+      // Header with logo
+      doc.rect(0, 0, doc.page.width, 110).fill(pink);
+      try { doc.image(this.logoPath, (doc.page.width - 40) / 2, 8, { width: 40, height: 40 }); } catch (e) {}
+      doc.fontSize(28).fill('#FFFFFF').text('CRAFTELLE', 50, 52, { align: 'center' });
+      doc.fontSize(11).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 82, { align: 'center' });
 
       // Title
-      doc.fill(darkText).fontSize(20).text('Quote', 50, 120);
-      doc.moveTo(50, 148).lineTo(545, 148).strokeColor('#E5E7EB').stroke();
+      doc.fill(darkText).fontSize(20).text('Quote', 50, 130);
+      doc.moveTo(50, 158).lineTo(545, 158).strokeColor('#E5E7EB').stroke();
 
-      let y = 165;
+      let y = 175;
       const orderDate = order.quotedAt
         ? new Date(order.quotedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
         : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -579,7 +675,6 @@ export class EmailService {
 
       y += 55;
       doc.fontSize(10).fill(grey).text('Please pay via the Craftelle app to confirm your order.', 50, y, { align: 'center' });
-      doc.fontSize(8).fill('#9CA3AF').text('This is an auto-generated quote.', 50, y + 18, { align: 'center' });
 
       doc.end();
     });
@@ -598,17 +693,18 @@ export class EmailService {
       const grey = '#6B7280';
       const lightPink = '#FFF1F2';
 
-      // Header
-      doc.rect(0, 0, doc.page.width, 100).fill(pink);
-      doc.fontSize(32).fill('#FFFFFF').text('CRAFTELLE', 50, 30, { align: 'center' });
-      doc.fontSize(12).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 65, { align: 'center' });
+      // Header with logo
+      doc.rect(0, 0, doc.page.width, 110).fill(pink);
+      try { doc.image(this.logoPath, (doc.page.width - 40) / 2, 8, { width: 40, height: 40 }); } catch (e) {}
+      doc.fontSize(28).fill('#FFFFFF').text('CRAFTELLE', 50, 52, { align: 'center' });
+      doc.fontSize(11).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 82, { align: 'center' });
 
       // Title
-      doc.fill(darkText).fontSize(20).text('Final Invoice', 50, 120);
-      doc.fill('#10B981').fontSize(12).text('PAID', 480, 125);
-      doc.moveTo(50, 148).lineTo(545, 148).strokeColor('#E5E7EB').stroke();
+      doc.fill(darkText).fontSize(20).text('Final Invoice', 50, 130);
+      doc.fill('#10B981').fontSize(12).text('PAID', 480, 135);
+      doc.moveTo(50, 158).lineTo(545, 158).strokeColor('#E5E7EB').stroke();
 
-      let y = 165;
+      let y = 175;
       const orderDate = order.createdAt
         ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
         : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -678,7 +774,6 @@ export class EmailService {
 
       y += 55;
       doc.fontSize(10).fill(grey).text('Thank you for choosing Craftelle!', 50, y, { align: 'center' });
-      doc.fontSize(8).fill('#9CA3AF').text('This is an auto-generated invoice.', 50, y + 18, { align: 'center' });
 
       doc.end();
     });
@@ -698,17 +793,18 @@ export class EmailService {
       const grey = '#6B7280';
       const lightPink = '#FFF1F2';
 
-      // --- Header ---
-      doc.rect(0, 0, doc.page.width, 100).fill(pink);
-      doc.fontSize(32).fill('#FFFFFF').text('CRAFTELLE', 50, 30, { align: 'center' });
-      doc.fontSize(12).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 65, { align: 'center' });
+      // --- Header with logo ---
+      doc.rect(0, 0, doc.page.width, 110).fill(pink);
+      try { doc.image(this.logoPath, (doc.page.width - 40) / 2, 8, { width: 40, height: 40 }); } catch (e) {}
+      doc.fontSize(28).fill('#FFFFFF').text('CRAFTELLE', 50, 52, { align: 'center' });
+      doc.fontSize(11).fill('rgba(255,255,255,0.85)').text('Premium Gifting Brand', 50, 82, { align: 'center' });
 
       // --- Title ---
-      doc.fill(darkText).fontSize(20).text('Order Receipt', 50, 120);
-      doc.moveTo(50, 148).lineTo(545, 148).strokeColor('#E5E7EB').stroke();
+      doc.fill(darkText).fontSize(20).text('Order Receipt', 50, 130);
+      doc.moveTo(50, 158).lineTo(545, 158).strokeColor('#E5E7EB').stroke();
 
       // --- Order Info ---
-      let y = 165;
+      let y = 175;
       const orderDate = order.createdAt
         ? new Date(order.createdAt).toLocaleDateString('en-GB', {
             day: 'numeric',
@@ -785,7 +881,6 @@ export class EmailService {
       // --- Footer ---
       y += 55;
       doc.fontSize(10).fill(grey).text('Thank you for choosing Craftelle!', 50, y, { align: 'center' });
-      doc.fontSize(8).fill('#9CA3AF').text('This is an auto-generated receipt.', 50, y + 18, { align: 'center' });
 
       doc.end();
     });

@@ -42,6 +42,9 @@ export class Order {
   @Prop({ required: true })
   customerEmail: string;
 
+  @Prop({ default: '' })
+  sellerEmail: string;
+
   @Prop({ type: [OrderItemSchema], default: [] })
   items: OrderItemSchema[];
 

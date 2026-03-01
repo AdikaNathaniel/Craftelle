@@ -26,20 +26,7 @@ class BasketItem {
   String get uniqueKey =>
       selectedSize != null ? '${productId}_$selectedSize' : productId;
 
-  String get displaySize {
-    switch (selectedSize) {
-      case 'small':
-        return 'Small';
-      case 'medium':
-        return 'Medium';
-      case 'large':
-        return 'Large';
-      case 'extraLarge':
-        return 'Extra Large';
-      default:
-        return '';
-    }
-  }
+  String get displaySize => selectedSize ?? '';
 
   Map<String, dynamic> toJson() => {
         'productId': productId,

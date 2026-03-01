@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderDocument } from 'src/shared/schema/order.schema';
+import { Users, userTypes } from 'src/shared/schema/users';
 import { CreateOrderDto, SubmitQuoteDto, PayQuoteDto } from './dto/create-order.dto';
 import { PaystackService } from 'src/paystack/paystack.service';
 import { EmailService } from 'src/email/email.service';
@@ -11,10 +12,20 @@ import { NotificationService } from 'src/notification/notification.service';
 export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderDB: Model<OrderDocument>,
+    @InjectModel(Users.name) private userDB: Model<Users>,
     private readonly paystackService: PaystackService,
     private readonly emailService: EmailService,
     private readonly notificationService: NotificationService,
   ) {}
+
+  /**
+   * Always resolves the current seller email from the Users DB.
+   * Never relies on hardcoded or cached emails from products/orders.
+   */
+  private async resolveSellerEmail(): Promise<string> {
+    const seller = await this.userDB.findOne({ type: userTypes.SELLER }).exec();
+    return seller?.email || '';
+  }
 
   async createOrder(createOrderDto: CreateOrderDto) {
     try {
@@ -56,8 +67,12 @@ export class OrderService {
         }
       }
 
+      // Always resolve seller from Users DB — never trust product/item emails
+      const sellerEmail = await this.resolveSellerEmail();
+
       const newOrder = new this.orderDB({
         customerEmail: createOrderDto.customerEmail,
+        sellerEmail,
         items: createOrderDto.items || [],
         wishListItems: normalizedWishList,
         totalPrice: createOrderDto.totalPrice || 0,
@@ -80,6 +95,18 @@ export class OrderService {
       if (!hasExtras) {
         this.emailService.sendOrderReceiptEmail(newOrder.toObject()).catch((err) => {
           console.error('Failed to send order receipt email:', err);
+        });
+      } else if (sellerEmail) {
+        // Notify seller about new order that needs pricing
+        this.emailService.sendNewQuoteOrderToSeller(newOrder.toObject(), sellerEmail).catch((err) => {
+          console.error('Failed to send new quote order email to seller:', err);
+        });
+        this.notificationService.sendPushToUser(
+          sellerEmail,
+          'New Order',
+          `A new order needs pricing. Review extras in the app.`,
+        ).catch((err) => {
+          console.error('Failed to send push to seller:', err);
         });
       }
 
@@ -126,6 +153,9 @@ export class OrderService {
 
       const grandTotal = basketTotal + quotedExtrasTotal;
 
+      // Refresh seller email on the order to current value
+      const currentSellerEmail = await this.resolveSellerEmail();
+      order.sellerEmail = currentSellerEmail;
       order.wishListItems = updatedWishList as any;
       order.quotedExtrasTotal = quotedExtrasTotal;
       order.totalPrice = grandTotal;
@@ -141,8 +171,8 @@ export class OrderService {
       // Send push notification to customer
       this.notificationService.sendPushToUser(
         order.customerEmail,
-        'Craftelle - Quote Ready',
-        `Your extras have been priced! Total: GHS ${grandTotal.toLocaleString()}. Open the app to review and pay.`,
+        'Quote Ready',
+        `Your quote is GHS ${grandTotal.toLocaleString()}. Pay now in the app.`,
       ).catch((err) => {
         console.error('Failed to send quote push notification:', err);
       });
@@ -185,6 +215,9 @@ export class OrderService {
         );
       }
 
+      // Resolve current seller email fresh from DB
+      const currentSellerEmail = await this.resolveSellerEmail();
+      order.sellerEmail = currentSellerEmail;
       order.paymentStatus = 'Paid';
       order.paymentReference = payQuoteDto.paymentReference;
       order.quoteStatus = 'paid';
@@ -222,9 +255,22 @@ export class OrderService {
 
   async getOrdersBySeller(sellerEmail: string) {
     try {
+      // Verify this user is actually a seller
+      const seller = await this.userDB.findOne({
+        email: sellerEmail,
+        type: userTypes.SELLER,
+      }).exec();
+
+      if (!seller) {
+        throw new BadRequestException('Seller account not found');
+      }
+
+      // Return all orders — the seller sees everything regardless of
+      // what email was stored on old orders or product data
       const orders = await this.orderDB
-        .find({ 'items.sellerEmail': sellerEmail })
+        .find()
         .sort({ createdAt: -1 });
+
       return {
         message: 'Seller orders retrieved successfully',
         success: true,

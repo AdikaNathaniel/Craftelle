@@ -277,6 +277,7 @@ class _LoginPageState extends State<LoginPage> {
         body: json.encode({
           'email': email,
           'password': password,
+          'type': selectedUserType,
         }),
       );
 
@@ -294,6 +295,8 @@ class _LoginPageState extends State<LoginPage> {
         String message = responseData['message'] ?? "Invalid email or password";
         if (message.contains('No account found') || message.contains('Please create an account')) {
           _showNotRegisteredSnackbar();
+        } else if (message.contains('not registered as')) {
+          _showRoleMismatchDialog(message);
         } else if (message.contains('Account is temporarily locked')) {
           _showAccountLockedDialog(message);
         } else if (message.contains('account has been deactivated') ||
@@ -383,6 +386,14 @@ class _LoginPageState extends State<LoginPage> {
           },
         ),
       ),
+    );
+  }
+
+  void _showRoleMismatchDialog(String message) {
+    CraftelleDialog.showError(
+      context,
+      title: "Wrong Role",
+      message: "$message\n\nPlease select the correct role and try again.",
     );
   }
 

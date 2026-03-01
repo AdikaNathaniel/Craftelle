@@ -304,14 +304,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _pink),
                           ),
                           const SizedBox(height: 16),
-                          if (sizePrices['small'] != null)
-                            _buildSizeCard('Small', 'small', sizePrices['small'], Icons.crop_square),
-                          if (sizePrices['medium'] != null)
-                            _buildSizeCard('Medium', 'medium', sizePrices['medium'], Icons.crop_din),
-                          if (sizePrices['large'] != null)
-                            _buildSizeCard('Large', 'large', sizePrices['large'], Icons.crop_landscape),
-                          if (sizePrices['extraLarge'] != null)
-                            _buildSizeCard('Extra Large', 'extraLarge', sizePrices['extraLarge'], Icons.crop_free),
+                          ...(sizePrices as Map<String, dynamic>).entries
+                              .where((e) => e.value != null)
+                              .map((e) => _buildSizeCard(e.key, e.key, e.value, Icons.straighten)),
                         ] else if (widget.product['basePrice'] != null) ...[
                           const Text(
                             'Price',

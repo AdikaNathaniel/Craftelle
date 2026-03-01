@@ -563,8 +563,8 @@ class _CollectionsPageState extends State<CollectionsPage> with TickerProviderSt
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Top Row - Edit and Delete Icons
-                          if (widget.isSellerView && product['sellerEmail'] == widget.userEmail)
+                          // Top Row - Edit and Delete Icons (seller sees all products)
+                          if (widget.isSellerView)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

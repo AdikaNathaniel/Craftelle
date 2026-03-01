@@ -20,10 +20,7 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _basePriceController = TextEditingController();
-  final TextEditingController _smallPriceController = TextEditingController();
-  final TextEditingController _mediumPriceController = TextEditingController();
-  final TextEditingController _largePriceController = TextEditingController();
-  final TextEditingController _extraLargePriceController = TextEditingController();
+  List<Map<String, dynamic>> _sizeCategories = [];
 
   File? _selectedImage;
   String? _imageUrl;
@@ -51,10 +48,9 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
     _nameController.dispose();
     _descriptionController.dispose();
     _basePriceController.dispose();
-    _smallPriceController.dispose();
-    _mediumPriceController.dispose();
-    _largePriceController.dispose();
-    _extraLargePriceController.dispose();
+    for (final cat in _sizeCategories) {
+      (cat['controller'] as TextEditingController).dispose();
+    }
     super.dispose();
   }
 
@@ -184,16 +180,14 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
       };
 
       if (_hasSizes) {
-        productData['sizePrices'] = {
-          if (_smallPriceController.text.isNotEmpty)
-            'small': double.parse(_smallPriceController.text),
-          if (_mediumPriceController.text.isNotEmpty)
-            'medium': double.parse(_mediumPriceController.text),
-          if (_largePriceController.text.isNotEmpty)
-            'large': double.parse(_largePriceController.text),
-          if (_extraLargePriceController.text.isNotEmpty)
-            'extraLarge': double.parse(_extraLargePriceController.text),
-        };
+        final sizePrices = <String, double>{};
+        for (final cat in _sizeCategories) {
+          final controller = cat['controller'] as TextEditingController;
+          if (controller.text.isNotEmpty) {
+            sizePrices[cat['name'] as String] = double.parse(controller.text);
+          }
+        }
+        productData['sizePrices'] = sizePrices;
       } else {
         productData['basePrice'] = double.parse(_basePriceController.text);
       }
@@ -238,10 +232,10 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
     _nameController.clear();
     _descriptionController.clear();
     _basePriceController.clear();
-    _smallPriceController.clear();
-    _mediumPriceController.clear();
-    _largePriceController.clear();
-    _extraLargePriceController.clear();
+    for (final cat in _sizeCategories) {
+      (cat['controller'] as TextEditingController).dispose();
+    }
+    _sizeCategories.clear();
     setState(() {
       _selectedImage = null;
       _hasSizes = false;
@@ -373,11 +367,22 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
                         style: TextStyle(fontSize: 15),
                       ),
                     ),
+                    if (_hasSizes)
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Color(0xFFFDA4AF), size: 20),
+                        onPressed: _showCategoryDialog,
+                        tooltip: 'Edit size categories',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     Switch(
                       value: _hasSizes,
                       onChanged: (value) {
                         setState(() {
                           _hasSizes = value;
+                          if (value && _sizeCategories.isEmpty) {
+                            _initDefaultCategories();
+                          }
                         });
                       },
                       activeColor: const Color(0xFFFDA4AF),
@@ -416,13 +421,14 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildSizePriceField('Small', _smallPriceController, Icons.crop_square),
-                const SizedBox(height: 12),
-                _buildSizePriceField('Medium', _mediumPriceController, Icons.crop_din),
-                const SizedBox(height: 12),
-                _buildSizePriceField('Large', _largePriceController, Icons.crop_landscape),
-                const SizedBox(height: 12),
-                _buildSizePriceField('Extra Large', _extraLargePriceController, Icons.crop_free),
+                ..._sizeCategories.map((cat) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildSizePriceField(
+                    cat['name'] as String,
+                    cat['controller'] as TextEditingController,
+                    Icons.straighten,
+                  ),
+                )),
               ],
 
               const SizedBox(height: 32),
@@ -463,6 +469,161 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
           ),
         ),
       ),
+    );
+  }
+
+  void _initDefaultCategories() {
+    _sizeCategories = [
+      {'name': 'Small', 'controller': TextEditingController()},
+      {'name': 'Medium', 'controller': TextEditingController()},
+      {'name': 'Large', 'controller': TextEditingController()},
+      {'name': 'Extra Large', 'controller': TextEditingController()},
+    ];
+  }
+
+  void _showCategoryDialog() {
+    final nameControllers = _sizeCategories
+        .map((cat) => TextEditingController(text: cat['name'] as String))
+        .toList();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.category, color: Color(0xFFFDA4AF)),
+                  SizedBox(width: 8),
+                  Text('Size Categories', style: TextStyle(fontSize: 18)),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.4,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: nameControllers.length,
+                          itemBuilder: (context, i) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: nameControllers[i],
+                                      decoration: InputDecoration(
+                                        hintText: 'Category name',
+                                        isDense: true,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: const BorderSide(color: Color(0xFFFDA4AF)),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                    onPressed: nameControllers.length > 1
+                                        ? () {
+                                            setDialogState(() {
+                                              nameControllers[i].dispose();
+                                              nameControllers.removeAt(i);
+                                            });
+                                          }
+                                        : null,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          setDialogState(() {
+                            nameControllers.add(TextEditingController());
+                          });
+                        },
+                        icon: const Icon(Icons.add, color: Color(0xFFFDA4AF)),
+                        label: const Text('Add Category', style: TextStyle(color: Color(0xFFFDA4AF))),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    for (final c in nameControllers) {
+                      c.dispose();
+                    }
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final newNames = nameControllers
+                        .map((c) => c.text.trim())
+                        .where((name) => name.isNotEmpty)
+                        .toList();
+
+                    if (newNames.isEmpty) return;
+
+                    // Preserve existing price data where category name matches
+                    final oldPrices = <String, String>{};
+                    for (final cat in _sizeCategories) {
+                      final controller = cat['controller'] as TextEditingController;
+                      if (controller.text.isNotEmpty) {
+                        oldPrices[cat['name'] as String] = controller.text;
+                      }
+                    }
+
+                    // Dispose old controllers
+                    for (final cat in _sizeCategories) {
+                      (cat['controller'] as TextEditingController).dispose();
+                    }
+
+                    // Create new categories
+                    setState(() {
+                      _sizeCategories = newNames.map((name) {
+                        final controller = TextEditingController(text: oldPrices[name] ?? '');
+                        return <String, dynamic>{'name': name, 'controller': controller};
+                      }).toList();
+                    });
+
+                    for (final c in nameControllers) {
+                      c.dispose();
+                    }
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFDA4AF),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
