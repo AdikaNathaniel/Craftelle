@@ -126,9 +126,11 @@ export class OrderService {
     try {
       const order = await this.orderDB.findById(orderId);
       if (!order) throw new BadRequestException('Order not found');
-      if (order.quoteStatus !== 'pending') {
+      if (order.quoteStatus !== 'pending' && order.quoteStatus !== 'quoted') {
         throw new BadRequestException(`Cannot quote an order with status: ${order.quoteStatus}`);
       }
+
+      const isUpdate = order.quoteStatus === 'quoted';
 
       // Update each wishListItem with the quoted price
       const updatedWishList = order.wishListItems.map((existing) => {
@@ -171,14 +173,16 @@ export class OrderService {
       // Send push notification to customer
       this.notificationService.sendPushToUser(
         order.customerEmail,
-        'Quote Ready',
-        `Your quote is GHS ${grandTotal.toLocaleString()}. Pay now in the app.`,
+        isUpdate ? 'Quote Updated' : 'Quote Ready',
+        isUpdate
+          ? `Your quote has been updated to GHS ${grandTotal.toLocaleString()}. Pay now in the app.`
+          : `Your quote is GHS ${grandTotal.toLocaleString()}. Pay now in the app.`,
       ).catch((err) => {
         console.error('Failed to send quote push notification:', err);
       });
 
       return {
-        message: 'Quote submitted successfully',
+        message: isUpdate ? 'Quote updated successfully' : 'Quote submitted successfully',
         success: true,
         result: order,
       };

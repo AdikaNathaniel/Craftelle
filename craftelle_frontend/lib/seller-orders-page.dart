@@ -466,30 +466,33 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                       ),
                     ),
                   ),
-                // Awaiting Payment badge (for quoted orders)
+                // Edit Quote button (for quoted orders awaiting payment)
                 if (order.quoteStatus == 'quoted')
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.hourglass_top, color: Colors.blue, size: 18),
-                          SizedBox(width: 6),
-                          Text(
-                            'Awaiting Payment',
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                    child: GestureDetector(
+                      onTap: () => _showPriceExtrasDialog(order, index),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.edit, color: Colors.blue, size: 18),
+                            SizedBox(width: 6),
+                            Text(
+                              'Edit Quote',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -574,8 +577,10 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
   }
 
   void _showPriceExtrasDialog(Order order, int index) {
+    final isEdit = order.quoteStatus == 'quoted';
     final controllers = order.wishListItems
-        .map((_) => TextEditingController())
+        .map((item) => TextEditingController(
+            text: item.quotedPrice != null ? item.quotedPrice.toStringAsFixed(0) : ''))
         .toList();
 
     showDialog(
@@ -598,13 +603,13 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                   child: const Icon(Icons.request_quote, color: _pinkDark, size: 32),
                 ),
                 const SizedBox(height: 14),
-                const Text(
-                  'Price Extras',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                Text(
+                  isEdit ? 'Update Prices' : 'Price Extras',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Enter a price (GHS) for each extra item',
+                  isEdit ? 'Edit prices and a new quote PDF will be sent' : 'Enter a price (GHS) for each extra item',
                   style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
                 const SizedBox(height: 18),
@@ -689,7 +694,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                                   children: [
                                     Icon(Icons.check_circle, color: Colors.white),
                                     SizedBox(width: 10),
-                                    Text('Quote sent! Customer will be notified.'),
+                                    Text(isEdit ? 'Quote updated! New PDF sent to customer.' : 'Quote sent! Customer will be notified.'),
                                   ],
                                 ),
                                 backgroundColor: Colors.green,
@@ -711,7 +716,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text('Send Quote', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                        child: Text(isEdit ? 'Update Quote' : 'Send Quote', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
