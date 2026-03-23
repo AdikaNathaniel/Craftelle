@@ -580,7 +580,7 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
     final isEdit = order.quoteStatus == 'quoted';
     final controllers = order.wishListItems
         .map((item) => TextEditingController(
-            text: item.quotedPrice != null ? item.quotedPrice.toStringAsFixed(0) : ''))
+            text: item.quotedPrice != null ? item.quotedPrice!.toStringAsFixed(0) : ''))
         .toList();
 
     showDialog(
@@ -690,10 +690,10 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
                             _loadOrders();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Row(
+                                content: Row(
                                   children: [
-                                    Icon(Icons.check_circle, color: Colors.white),
-                                    SizedBox(width: 10),
+                                    const Icon(Icons.check_circle, color: Colors.white),
+                                    const SizedBox(width: 10),
                                     Text(isEdit ? 'Quote updated! New PDF sent to customer.' : 'Quote sent! Customer will be notified.'),
                                   ],
                                 ),

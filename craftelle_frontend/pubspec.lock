@@ -9,14 +9,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.59"
-  agora_rtc_engine:
-    dependency: "direct main"
-    description:
-      name: agora_rtc_engine
-      sha256: "6559294d18ce4445420e19dbdba10fb58cac955cd8f22dbceae26716e194d70e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.5.3"
   animated_marker:
     dependency: "direct main"
     description:
@@ -73,14 +65,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.13"
-  bluez:
-    dependency: transitive
-    description:
-      name: bluez
-      sha256: "61a7204381925896a374301498f2f5399e59827c6498ae1e924aaa598751b545"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.8.3"
   boolean_selector:
     dependency: transitive
     description:
@@ -265,14 +249,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
-  dart_webrtc:
-    dependency: transitive
-    description:
-      name: dart_webrtc
-      sha256: "4ed7b9fa9924e5a81eb39271e2c2356739dd1039d60a13b86ba6c5f448625086"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.7.0"
   dbus:
     dependency: transitive
     description:
@@ -486,54 +462,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_blue_plus:
-    dependency: "direct main"
-    description:
-      name: flutter_blue_plus
-      sha256: "69a8c87c11fc792e8cf0f997d275484fbdb5143ac9f0ac4d424429700cb4e0ed"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.36.8"
-  flutter_blue_plus_android:
-    dependency: transitive
-    description:
-      name: flutter_blue_plus_android
-      sha256: "6f7fe7e69659c30af164a53730707edc16aa4d959e4c208f547b893d940f853d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.4"
-  flutter_blue_plus_darwin:
-    dependency: transitive
-    description:
-      name: flutter_blue_plus_darwin
-      sha256: "682982862c1d964f4d54a3fb5fccc9e59a066422b93b7e22079aeecd9c0d38f8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.3"
-  flutter_blue_plus_linux:
-    dependency: transitive
-    description:
-      name: flutter_blue_plus_linux
-      sha256: "56b0c45edd0a2eec8f85bd97a26ac3cd09447e10d0094fed55587bf0592e3347"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.3"
-  flutter_blue_plus_platform_interface:
-    dependency: transitive
-    description:
-      name: flutter_blue_plus_platform_interface
-      sha256: "84fbd180c50a40c92482f273a92069960805ce324e3673ad29c41d2faaa7c5c2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.0"
-  flutter_blue_plus_web:
-    dependency: transitive
-    description:
-      name: flutter_blue_plus_web
-      sha256: a1aceee753d171d24c0e0cdadb37895b5e9124862721f25f60bb758e20b72c99
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.2"
   flutter_chat_core:
     dependency: transitive
     description:
@@ -566,14 +494,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.2.1"
-  flutter_kafka:
-    dependency: "direct main"
-    description:
-      name: flutter_kafka
-      sha256: cdd3b4bb57b200e18320081ee9fb953b985c787a1d44f2d249de39ba963f653f
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.1"
   flutter_launcher_icons:
     dependency: "direct main"
     description:
@@ -680,14 +600,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_webrtc:
-    dependency: "direct main"
-    description:
-      name: flutter_webrtc
-      sha256: "69095ba39b83da3de48286dfc0769aa8e9f10491f70058dc8d8ecc960ef7a260"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   fluttertoast:
     dependency: "direct main"
     description:
@@ -992,14 +904,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.20.2"
-  iris_method_channel:
-    dependency: transitive
-    description:
-      name: iris_method_channel
-      sha256: bfb5cfc6c6eae42da8cd1b35977a72d8b8881848a5dfc3d672e4760a907d11a0
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.4"
   js:
     dependency: "direct main"
     description:
@@ -1456,14 +1360,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
-  rxdart:
-    dependency: transitive
-    description:
-      name: rxdart
-      sha256: "5c3004a4a8dbb94bd4bf5412a4def4acdaa12e12f269737a5751369e12d1a962"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.28.0"
   sanitize_html:
     dependency: transitive
     description:
@@ -1789,14 +1685,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
-  webrtc_interface:
-    dependency: transitive
-    description:
-      name: webrtc_interface
-      sha256: ad0e5786b2acd3be72a3219ef1dde9e1cac071cf4604c685f11b61d63cdd6eb3
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.0"
   webview_flutter:
     dependency: "direct main"
     description:
