@@ -1,0 +1,19 @@
+name: Craftelle Deploy
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'craftelle_backend/**'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./craftelle_backend
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

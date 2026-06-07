@@ -1,0 +1,648 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'craftelle-dialog.dart';
+
+class ProductUploadPage extends StatefulWidget {
+  final String userEmail;
+
+  const ProductUploadPage({Key? key, required this.userEmail}) : super(key: key);
+
+  @override
+  _ProductUploadPageState createState() => _ProductUploadPageState();
+}
+
+class _ProductUploadPageState extends State<ProductUploadPage> with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _basePriceController = TextEditingController();
+  List<Map<String, dynamic>> _sizeCategories = [];
+
+  File? _selectedImage;
+  String? _imageUrl;
+  bool _hasSizes = false;
+  bool _isLoading = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _basePriceController.dispose();
+    for (final cat in _sizeCategories) {
+      (cat['controller'] as TextEditingController).dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+    }
+  }
+
+  Future<String?> _uploadImageToCloudinary(File imageFile) async {
+    try {
+      // Load Cloudinary credentials from environment variables
+      final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? 'dm1wcgwwi';
+      final uploadPreset = dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? 'craftelle_upload';
+
+      print('📤 Starting upload to Cloudinary...');
+      print('☁️ Cloud Name: $cloudName');
+      print('🔑 Upload Preset: $uploadPreset');
+
+      // Use direct HTTP upload
+      final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+      var request = http.MultipartRequest('POST', uri);
+      request.fields['upload_preset'] = uploadPreset;
+      // Note: folder is configured in the upload preset, not passed here
+
+      // Add the image file
+      request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+      print('📡 Sending request to Cloudinary...');
+
+      // Send the request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('📥 Response status: ${response.statusCode}');
+      print('📄 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final secureUrl = responseData['secure_url'];
+        print('✅ Upload successful! URL: $secureUrl');
+        return secureUrl;
+      } else {
+        print('❌ Cloudinary error: ${response.statusCode}');
+        print('📋 Error details: ${response.body}');
+
+        // Parse error message from response
+        String errorMessage = 'Upload failed with status ${response.statusCode}';
+        try {
+          final errorData = json.decode(response.body);
+          if (errorData['error'] != null && errorData['error']['message'] != null) {
+            errorMessage = errorData['error']['message'];
+          }
+        } catch (_) {
+          // Use default error message if parsing fails
+        }
+
+        // Show error dialog
+        if (mounted) {
+          _showErrorDialog(
+            'Upload Failed',
+            '$errorMessage\n\nStatus Code: ${response.statusCode}\n\nPlease check:\n• Upload preset is "unsigned"\n• Cloud name is correct\n• Preset name: craftelle_upload',
+          );
+        }
+        return null;
+      }
+    } catch (e, stackTrace) {
+      print('❌ Error uploading image: $e');
+      print('📚 Stack trace: $stackTrace');
+
+      if (mounted) {
+        _showErrorDialog(
+          'Upload Error',
+          '${e.toString()}\n\nPlease check your internet connection and Cloudinary settings.',
+        );
+      }
+      return null;
+    }
+  }
+
+  Future<void> _submitProduct() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedImage == null) {
+      _showErrorDialog(
+        'Image Required',
+        'Please select an image for your product before uploading.',
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Upload image first
+      final imageUrl = await _uploadImageToCloudinary(_selectedImage!);
+
+      if (imageUrl == null) {
+        // Error dialog already shown by _uploadImageToCloudinary
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Prepare product data
+      final productData = {
+        'name': _nameController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'imageUrl': imageUrl,
+        'hasSizes': _hasSizes,
+        'sellerEmail': widget.userEmail,
+        'sellerName': widget.userEmail,
+      };
+
+      if (_hasSizes) {
+        final sizePrices = <String, double>{};
+        for (final cat in _sizeCategories) {
+          final controller = cat['controller'] as TextEditingController;
+          if (controller.text.isNotEmpty) {
+            sizePrices[cat['name'] as String] = double.parse(controller.text);
+          }
+        }
+        productData['sizePrices'] = sizePrices;
+      } else {
+        productData['basePrice'] = double.parse(_basePriceController.text);
+      }
+
+      print('📦 Submitting product to backend...');
+
+      // Submit to backend
+      final response = await http.post(
+        Uri.parse('https://craftelle.fly.dev/api/v1/products'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(productData),
+      );
+
+      print('📥 Backend response: ${response.statusCode}');
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 201 && responseData['success']) {
+        print('✅ Product created successfully!');
+        _showSuccessDialog();
+        _clearForm();
+      } else {
+        print('❌ Backend error: ${responseData['message']}');
+        _showErrorDialog(
+          'Product Creation Failed',
+          responseData['message'] ?? 'Failed to create product. Please try again.',
+        );
+      }
+    } catch (e) {
+      print('❌ Error in _submitProduct: $e');
+      _showErrorDialog(
+        'Error',
+        'An error occurred: ${e.toString()}',
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _clearForm() {
+    _nameController.clear();
+    _descriptionController.clear();
+    _basePriceController.clear();
+    for (final cat in _sizeCategories) {
+      (cat['controller'] as TextEditingController).dispose();
+    }
+    _sizeCategories.clear();
+    setState(() {
+      _selectedImage = null;
+      _hasSizes = false;
+    });
+  }
+
+  void _showSuccessDialog() {
+    CraftelleDialog.showSuccess(
+      context,
+      title: 'Product Uploaded',
+      message: 'Your masterpiece is now live in the collection!',
+    );
+  }
+
+  void _showErrorDialog(String title, String message) {
+    CraftelleDialog.showError(
+      context,
+      title: title,
+      message: message,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image Upload
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFFDA4AF), width: 2),
+                  ),
+                  child: _selectedImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.add_photo_alternate,
+                              size: 64,
+                              color: Color(0xFFFDA4AF),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Tap to upload image',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Product Name
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Product Name',
+                  hintText: 'e.g., Handmade Rose Bouquet',
+                  prefixIcon: const Icon(Icons.label, color: Color(0xFFFDA4AF)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFFDA4AF), width: 2),
+                  ),
+                ),
+                validator: (value) => value?.isEmpty ?? true ? 'Enter product name' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Description
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Tell us about your beautiful creation...',
+                  prefixIcon: const Icon(Icons.description, color: Color(0xFFFDA4AF)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFFDA4AF), width: 2),
+                  ),
+                ),
+                validator: (value) => value?.isEmpty ?? true ? 'Enter description' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Has Sizes Switch
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.straighten, color: Color(0xFFFDA4AF)),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Does this product have different sizes?',
+                        style: TextStyle(fontSize: 15),
+                      ),
+                    ),
+                    if (_hasSizes)
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Color(0xFFFDA4AF), size: 20),
+                        onPressed: _showCategoryDialog,
+                        tooltip: 'Edit size categories',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    Switch(
+                      value: _hasSizes,
+                      onChanged: (value) {
+                        setState(() {
+                          _hasSizes = value;
+                          if (value && _sizeCategories.isEmpty) {
+                            _initDefaultCategories();
+                          }
+                        });
+                      },
+                      activeColor: const Color(0xFFFDA4AF),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Pricing Section
+              if (!_hasSizes) ...[
+                TextFormField(
+                  controller: _basePriceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Price (GH₵)',
+                    hintText: 'e.g., 150',
+                    prefixIcon: const Icon(Icons.attach_money, color: Color(0xFFFDA4AF)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFFDA4AF), width: 2),
+                    ),
+                  ),
+                  validator: (value) => value?.isEmpty ?? true ? 'Enter price' : null,
+                ),
+              ] else ...[
+                const Text(
+                  'Size Pricing',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFFDA4AF),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ..._sizeCategories.map((cat) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildSizePriceField(
+                    cat['name'] as String,
+                    cat['controller'] as TextEditingController,
+                    Icons.straighten,
+                  ),
+                )),
+              ],
+
+              const SizedBox(height: 32),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submitProduct,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFDA4AF),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 3,
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.cloud_upload, size: 24),
+                            SizedBox(width: 12),
+                            Text(
+                              'Upload Masterpiece',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _initDefaultCategories() {
+    _sizeCategories = [
+      {'name': 'Small', 'controller': TextEditingController()},
+      {'name': 'Medium', 'controller': TextEditingController()},
+      {'name': 'Large', 'controller': TextEditingController()},
+      {'name': 'Extra Large', 'controller': TextEditingController()},
+    ];
+  }
+
+  void _showCategoryDialog() {
+    final nameControllers = _sizeCategories
+        .map((cat) => TextEditingController(text: cat['name'] as String))
+        .toList();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.category, color: Color(0xFFFDA4AF)),
+                  SizedBox(width: 8),
+                  Text('Size Categories', style: TextStyle(fontSize: 18)),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.4,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: nameControllers.length,
+                          itemBuilder: (context, i) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: nameControllers[i],
+                                      decoration: InputDecoration(
+                                        hintText: 'Category name',
+                                        isDense: true,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: const BorderSide(color: Color(0xFFFDA4AF)),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                    onPressed: nameControllers.length > 1
+                                        ? () {
+                                            setDialogState(() {
+                                              nameControllers[i].dispose();
+                                              nameControllers.removeAt(i);
+                                            });
+                                          }
+                                        : null,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          setDialogState(() {
+                            nameControllers.add(TextEditingController());
+                          });
+                        },
+                        icon: const Icon(Icons.add, color: Color(0xFFFDA4AF)),
+                        label: const Text('Add Category', style: TextStyle(color: Color(0xFFFDA4AF))),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    for (final c in nameControllers) {
+                      c.dispose();
+                    }
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final newNames = nameControllers
+                        .map((c) => c.text.trim())
+                        .where((name) => name.isNotEmpty)
+                        .toList();
+
+                    if (newNames.isEmpty) return;
+
+                    // Preserve existing price data where category name matches
+                    final oldPrices = <String, String>{};
+                    for (final cat in _sizeCategories) {
+                      final controller = cat['controller'] as TextEditingController;
+                      if (controller.text.isNotEmpty) {
+                        oldPrices[cat['name'] as String] = controller.text;
+                      }
+                    }
+
+                    // Dispose old controllers
+                    for (final cat in _sizeCategories) {
+                      (cat['controller'] as TextEditingController).dispose();
+                    }
+
+                    // Create new categories
+                    setState(() {
+                      _sizeCategories = newNames.map((name) {
+                        final controller = TextEditingController(text: oldPrices[name] ?? '');
+                        return <String, dynamic>{'name': name, 'controller': controller};
+                      }).toList();
+                    });
+
+                    for (final c in nameControllers) {
+                      c.dispose();
+                    }
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFDA4AF),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSizePriceField(String label, TextEditingController controller, IconData icon) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: '$label (GH₵)',
+        hintText: 'Optional',
+        prefixIcon: Icon(icon, color: const Color(0xFFFDA4AF)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFFDA4AF), width: 2),
+        ),
+      ),
+    );
+  }
+}

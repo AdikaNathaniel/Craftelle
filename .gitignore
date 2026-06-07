@@ -1,0 +1,101 @@
+wq# compiled output
+/dist
+/node_modules
+/build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# Configuration files with secrets
+config/default.json
+craftelle_backend/config/default.json
+*/config/default.json
+
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+.vercel
+_backend_patient/service-account-file.json
+
+# ─── Android Signing (NEVER commit these) ────────────────────────────────────
+craftelle_frontend/android/key.properties
+craftelle_frontend/android/*.jks
+craftelle_frontend/android/*.keystore
+upload_certificate.pem
+
+# ─── Flutter / Dart ──────────────────────────────────────────────────────────
+craftelle_frontend/.dart_tool/
+craftelle_frontend/.flutter-plugins
+craftelle_frontend/.flutter-plugins-dependencies
+craftelle_frontend/.packages
+craftelle_frontend/pubspec.lock
+craftelle_frontend/build/
+craftelle_frontend/android/.gradle/
+craftelle_frontend/android/local.properties
+craftelle_frontend/android/captures/
+craftelle_frontend/ios/Pods/
+craftelle_frontend/ios/.symlinks/
+craftelle_frontend/ios/Flutter/Flutter.framework
+craftelle_frontend/ios/Flutter/Flutter.podspec
+craftelle_frontend/ios/Runner/GeneratedPluginRegistrant.*
+craftelle_frontend/ios/Flutter/App.framework
+craftelle_frontend/ios/Flutter/ephemeral/
+
+# ─── Backend node_modules & uploads ──────────────────────────────────────────
+craftelle_backend/node_modules/
+craftelle_backend/dist/
+craftelle_backend/uploads/
+!craftelle_backend/uploads/.gitkeep
+
+
+
+
+
+
+
