@@ -82,7 +82,11 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+<<<<<<< HEAD
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0"
+=======
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22"
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.core:core:1.10.1'
     implementation 'androidx.activity:activity:1.8.0'
@@ -100,10 +104,13 @@ dependencies {
             force 'androidx.activity:activity:1.8.0'
             force 'androidx.activity:activity-ktx:1.8.0'
             force 'androidx.browser:browser:1.6.0'
+<<<<<<< HEAD
             // Pin all Kotlin artifacts to 2.1.0 to match the Kotlin plugin version
             force 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
             force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0'
             force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0'
+=======
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
 
             // Remove conflicting navigation event if present
             exclude group: 'androidx.navigationevent', module: 'navigationevent-android'

@@ -271,6 +271,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
+<<<<<<< HEAD
       final response = await http
           .post(
             Uri.parse('https://craftelle.fly.dev/api/v1/users/login'),
@@ -285,6 +286,17 @@ class _LoginPageState extends State<LoginPage> {
             const Duration(seconds: 15),
             onTimeout: () => throw Exception('Request timed out'),
           );
+=======
+      final response = await http.post(
+        Uri.parse('https://craftelle.fly.dev/api/v1/users/login'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          'email': email,
+          'password': password,
+          'type': selectedUserType,
+        }),
+      );
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
 
       final responseData = json.decode(response.body);
 
@@ -293,7 +305,11 @@ class _LoginPageState extends State<LoginPage> {
 
         // Navigate to the appropriate page based on user type
         if (mounted) {
+<<<<<<< HEAD
           await _navigateBasedOnUserType(email, selectedUserType);
+=======
+          _navigateBasedOnUserType(email, selectedUserType);
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
         }
       } else {
         // Handle different error cases from the server
@@ -327,6 +343,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+<<<<<<< HEAD
   Future<void> _navigateBasedOnUserType(String email, String userType) async {
     if (!mounted) return;
 
@@ -334,6 +351,18 @@ class _LoginPageState extends State<LoginPage> {
 
     // Navigate immediately so the user isn't stuck on the login screen
     // while the permission dialog is shown by PushNotificationService.init().
+=======
+  void _navigateBasedOnUserType(String email, String userType) async {
+    if (!mounted) return;
+
+    // Initialize push notifications for this user's role
+    await PushNotificationService().init(userType);
+    // Send FCM token to backend for targeted push notifications
+    PushNotificationService.sendFcmTokenToBackend(email);
+
+    final userTypeLower = userType.toLowerCase();
+
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
     if (userTypeLower == 'admin') {
       Navigator.pushReplacement(
         context,
@@ -363,11 +392,14 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     }
+<<<<<<< HEAD
 
     // Initialise push notifications and send FCM token after navigation
     // so it never blocks the login → home transition.
     PushNotificationService().init(userType);
     PushNotificationService.sendFcmTokenToBackend(email);
+=======
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
   }
 
   void _showNotRegisteredSnackbar() {

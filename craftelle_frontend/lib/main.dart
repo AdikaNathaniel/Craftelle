@@ -27,6 +27,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+<<<<<<< HEAD
   try {
     await dotenv.load(fileName: ".env");
   } catch (_) {
@@ -44,6 +45,23 @@ void main() async {
   PushNotificationService.navigatorKey = navigatorKey;
 
   runApp(const MyApp());
+=======
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Set navigator key for push notification tap handling
+  PushNotificationService.navigatorKey = navigatorKey;
+
+  runApp(const MyApp());
+
+  // Use the FaceAuthApp for testing
+  // runApp(const FaceAuthApp());
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
 }
 
 // Keep your original app code (commented out for now but preserved for later use)

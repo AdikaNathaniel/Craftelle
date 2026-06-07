@@ -12,8 +12,11 @@ pluginManagement {
 
     repositories {
         google()
+<<<<<<< HEAD
         // JetBrains CDN mirror of Maven Central — avoids SSL connection resets on Windows
         maven { url 'https://cache-redirector.jetbrains.com/repo.maven.apache.org/maven2' }
+=======
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
         mavenCentral()
         gradlePluginPortal()
     }

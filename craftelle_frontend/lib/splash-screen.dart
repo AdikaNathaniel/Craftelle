@@ -69,7 +69,10 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
     
     // Navigate to next screen after animation completes + delay
     Future.delayed(Duration(milliseconds: widget.durationSeconds * 1000), () {
+<<<<<<< HEAD
       if (!mounted) return;
+=======
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => widget.nextScreen),
       );

@@ -5,6 +5,7 @@
 -keep class io.flutter.view.** { *; }
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
+<<<<<<< HEAD
 -keep class io.flutter.embedding.** { *; }
 
 # Google Maps & GMS
@@ -65,3 +66,14 @@
 
 # URL launcher
 -keep class io.flutter.plugins.urllauncher.** { *; }
+=======
+
+# Google Maps
+-keep class com.google.android.gms.maps.** { *; }
+
+# Firebase
+-keep class com.google.firebase.** { *; }
+
+# Play Core (deferred components)
+-dontwarn com.google.android.play.core.**
+>>>>>>> 7199ffd5e8563def48bf8789ffc3431a4c9325a7
