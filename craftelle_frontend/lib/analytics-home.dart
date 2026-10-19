@@ -17,7 +17,7 @@ class AnalyticsHomePage extends StatefulWidget {
 }
 
 class _AnalyticsHomePageState extends State<AnalyticsHomePage> {
-  static const String _baseUrl = 'https://craftelle.fly.dev';
+  static const String _baseUrl = 'https://craftelle.onrender.com';
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic> _summary = {};

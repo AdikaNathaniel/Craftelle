@@ -12,7 +12,7 @@ class AnalyticsRepeatedCustomersPage extends StatefulWidget {
 }
 
 class _AnalyticsRepeatedCustomersPageState extends State<AnalyticsRepeatedCustomersPage> {
-  static const String _baseUrl = 'https://craftelle.fly.dev';
+  static const String _baseUrl = 'https://craftelle.onrender.com';
   bool _isLoading = true;
   String? _error;
   List<dynamic> _customers = [];

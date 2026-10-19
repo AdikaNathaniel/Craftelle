@@ -12,7 +12,7 @@ class AnalyticsTopProductsPage extends StatefulWidget {
 }
 
 class _AnalyticsTopProductsPageState extends State<AnalyticsTopProductsPage> {
-  static const String _baseUrl = 'https://craftelle.fly.dev';
+  static const String _baseUrl = 'https://craftelle.onrender.com';
   bool _isLoading = true;
   String? _error;
   List<dynamic> _topProducts = [];

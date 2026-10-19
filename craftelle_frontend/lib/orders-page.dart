@@ -513,7 +513,7 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   Future<void> _payForQuote(Order order) async {
-    const baseUrl = 'https://craftelle.fly.dev/api/v1';
+    const baseUrl = 'https://craftelle.onrender.com/api/v1';
     const callbackUrl = 'https://craftelle.app/payment/callback';
 
     try {

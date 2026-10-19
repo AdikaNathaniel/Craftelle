@@ -23,7 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   String _selectedUserType = 'Customer';
 
-  static const String _baseUrl = 'https://craftelle.fly.dev';
+  static const String _baseUrl = 'https://craftelle.onrender.com';
 
   final List<String> _userTypes = [
     'Admin',

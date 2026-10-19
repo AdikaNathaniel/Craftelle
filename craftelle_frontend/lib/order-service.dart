@@ -189,7 +189,7 @@ class OrderService {
   OrderService._internal();
 
   static const String _baseUrl =
-      'https://craftelle.fly.dev/api/v1/orders';
+      'https://craftelle.onrender.com/api/v1/orders';
 
   final List<Order> _orders = [];
   final List<VoidCallback> _listeners = [];

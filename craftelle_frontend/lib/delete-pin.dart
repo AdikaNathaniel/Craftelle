@@ -22,7 +22,7 @@ class _PinDeleteScreenState extends State<PinDeleteScreen> {
     });
 
     try {
-      final url = Uri.parse('https://craftelle.fly.dev/api/v1/pin/${userIdController.text.trim()}');
+      final url = Uri.parse('https://craftelle.onrender.com/api/v1/pin/${userIdController.text.trim()}');
 
       final response = await http.delete(
         url,

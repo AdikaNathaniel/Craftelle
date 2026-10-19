@@ -146,7 +146,7 @@ class _BasketPageState extends State<BasketPage> with TickerProviderStateMixin {
 
     try {
       final response = await http.get(
-        Uri.parse('https://craftelle.fly.dev/api/v1/users/profile/${widget.customerEmail}'),
+        Uri.parse('https://craftelle.onrender.com/api/v1/users/profile/${widget.customerEmail}'),
         headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {

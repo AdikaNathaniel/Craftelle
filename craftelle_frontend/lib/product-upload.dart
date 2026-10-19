@@ -196,7 +196,7 @@ class _ProductUploadPageState extends State<ProductUploadPage> with SingleTicker
 
       // Submit to backend
       final response = await http.post(
-        Uri.parse('https://craftelle.fly.dev/api/v1/products'),
+        Uri.parse('https://craftelle.onrender.com/api/v1/products'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(productData),
       );

@@ -35,7 +35,7 @@ class _LoginPinPageState extends State<LoginPinPage> {
     });
 
     try {
-      final url = Uri.parse('https://craftelle.fly.dev/api/v1/pin/verify');
+      final url = Uri.parse('https://craftelle.onrender.com/api/v1/pin/verify');
       final body = jsonEncode({
         'userId': widget.userEmail,
         'pin': pinController.text.trim(),

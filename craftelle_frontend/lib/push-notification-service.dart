@@ -157,7 +157,7 @@ class PushNotificationService {
         return;
       }
       final response = await http.patch(
-        Uri.parse('https://craftelle.fly.dev/api/v1/users/fcm-token'),
+        Uri.parse('https://craftelle.onrender.com/api/v1/users/fcm-token'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'fcmToken': token}),
       );

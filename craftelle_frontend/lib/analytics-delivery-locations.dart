@@ -12,7 +12,7 @@ class AnalyticsDeliveryLocationsPage extends StatefulWidget {
 }
 
 class _AnalyticsDeliveryLocationsPageState extends State<AnalyticsDeliveryLocationsPage> {
-  static const String _baseUrl = 'https://craftelle.fly.dev';
+  static const String _baseUrl = 'https://craftelle.onrender.com';
   bool _isLoading = true;
   String? _error;
   List<dynamic> _byCity = [];

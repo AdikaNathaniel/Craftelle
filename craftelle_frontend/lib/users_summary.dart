@@ -51,7 +51,7 @@ class _UserListPageState extends State<UserListPage> {
   }
 
   Future<void> fetchUsers() async {
-    final response = await http.get(Uri.parse('https://craftelle.fly.dev/api/v1/users'));
+    final response = await http.get(Uri.parse('https://craftelle.onrender.com/api/v1/users'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['result'];
@@ -111,7 +111,7 @@ class _UserListPageState extends State<UserListPage> {
           TextButton(
             onPressed: () async {
               final response = await http.put(
-                Uri.parse('https://craftelle.fly.dev/api/v1/users/logout'),
+                Uri.parse('https://craftelle.onrender.com/api/v1/users/logout'),
                 headers: {'Content-Type': 'application/json'},
               );
 

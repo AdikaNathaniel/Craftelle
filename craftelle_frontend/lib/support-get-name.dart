@@ -46,7 +46,7 @@ class _SupportByNamePageState extends State<SupportByNamePage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://craftelle.fly.dev/api/v1/support/by-name/${_nameController.text.trim()}'),
+        Uri.parse('https://craftelle.onrender.com/api/v1/support/by-name/${_nameController.text.trim()}'),
       );
 
       if (response.statusCode == 200) {
