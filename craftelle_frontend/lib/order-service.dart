@@ -1,0 +1,413 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'basket-service.dart';
+
+class OrderItem {
+  final String productName;
+  final String imageUrl;
+  final String? selectedSize;
+  final double price;
+  final int quantity;
+  final String sellerName;
+  final String sellerEmail;
+
+  OrderItem({
+    required this.productName,
+    required this.imageUrl,
+    this.selectedSize,
+    required this.price,
+    required this.quantity,
+    required this.sellerName,
+    this.sellerEmail = '',
+  });
+
+  String get displaySize => selectedSize ?? '';
+
+  Map<String, dynamic> toJson() => {
+        'productName': productName,
+        'imageUrl': imageUrl,
+        'selectedSize': selectedSize,
+        'price': price,
+        'quantity': quantity,
+        'sellerName': sellerName,
+        'sellerEmail': sellerEmail,
+      };
+
+  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
+        productName: json['productName'] ?? '',
+        imageUrl: json['imageUrl'] ?? '',
+        selectedSize: json['selectedSize'],
+        price: (json['price'] as num).toDouble(),
+        quantity: json['quantity'] ?? 1,
+        sellerName: json['sellerName'] ?? '',
+        sellerEmail: json['sellerEmail'] ?? '',
+      );
+
+  factory OrderItem.fromBasketItem(BasketItem item) => OrderItem(
+        productName: item.productName,
+        imageUrl: item.imageUrl,
+        selectedSize: item.selectedSize,
+        price: item.price,
+        quantity: item.quantity,
+        sellerName: item.sellerName,
+        sellerEmail: item.sellerEmail,
+      );
+}
+
+class OrderWishListItem {
+  final String text;
+  final String specifications;
+  final double? quotedPrice;
+
+  OrderWishListItem({
+    required this.text,
+    this.specifications = '',
+    this.quotedPrice,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'text': text,
+        'specifications': specifications,
+        if (quotedPrice != null) 'quotedPrice': quotedPrice,
+      };
+
+  factory OrderWishListItem.fromJson(dynamic json) {
+    if (json is String) {
+      return OrderWishListItem(text: json);
+    }
+    final map = json as Map<String, dynamic>;
+    return OrderWishListItem(
+      text: map['text'] ?? '',
+      specifications: map['specifications'] ?? '',
+      quotedPrice: (map['quotedPrice'] as num?)?.toDouble(),
+    );
+  }
+}
+
+class Order {
+  final String id;
+  final DateTime createdAt;
+  final List<OrderItem> items;
+  final List<OrderWishListItem> wishListItems;
+  final double totalPrice;
+  final String customerEmail;
+  final String sellerEmail;
+  final String deliveryCity;
+  final String deliveryRegion;
+  final String deliveryAddress;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
+  final String customerPhone;
+  final String paymentStatus;
+  final String paymentReference;
+  final String orderStatus;
+  final bool requiresQuote;
+  final String quoteStatus;
+  final double? quotedExtrasTotal;
+  final DateTime? quotedAt;
+
+  Order({
+    required this.id,
+    required this.createdAt,
+    required this.items,
+    required this.wishListItems,
+    required this.totalPrice,
+    this.customerEmail = '',
+    this.sellerEmail = '',
+    this.deliveryCity = '',
+    this.deliveryRegion = '',
+    this.deliveryAddress = '',
+    this.deliveryLatitude,
+    this.deliveryLongitude,
+    this.customerPhone = '',
+    this.paymentStatus = 'Pending',
+    this.paymentReference = '',
+    this.orderStatus = 'Pending',
+    this.requiresQuote = false,
+    this.quoteStatus = 'none',
+    this.quotedExtrasTotal,
+    this.quotedAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'createdAt': createdAt.toIso8601String(),
+        'items': items.map((e) => e.toJson()).toList(),
+        'wishListItems': wishListItems.map((e) => e.toJson()).toList(),
+        'totalPrice': totalPrice,
+        'customerEmail': customerEmail,
+        'sellerEmail': sellerEmail,
+        'deliveryCity': deliveryCity,
+        'deliveryRegion': deliveryRegion,
+        'deliveryAddress': deliveryAddress,
+        'deliveryLatitude': deliveryLatitude,
+        'deliveryLongitude': deliveryLongitude,
+        'customerPhone': customerPhone,
+        'paymentStatus': paymentStatus,
+        'paymentReference': paymentReference,
+        'orderStatus': orderStatus,
+        'requiresQuote': requiresQuote,
+        'quoteStatus': quoteStatus,
+        'quotedExtrasTotal': quotedExtrasTotal,
+        'quotedAt': quotedAt?.toIso8601String(),
+      };
+
+  factory Order.fromJson(Map<String, dynamic> json) => Order(
+        id: json['_id'] ?? json['id'] ?? '',
+        createdAt: json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : DateTime.now(),
+        items: (json['items'] as List? ?? [])
+            .map((e) => OrderItem.fromJson(e))
+            .toList(),
+        wishListItems: (json['wishListItems'] as List? ?? [])
+            .map((e) => OrderWishListItem.fromJson(e))
+            .toList(),
+        totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
+        customerEmail: json['customerEmail'] ?? '',
+        sellerEmail: json['sellerEmail'] ?? '',
+        deliveryCity: json['deliveryCity'] ?? '',
+        deliveryRegion: json['deliveryRegion'] ?? '',
+        deliveryAddress: json['deliveryAddress'] ?? '',
+        deliveryLatitude: (json['deliveryLatitude'] as num?)?.toDouble(),
+        deliveryLongitude: (json['deliveryLongitude'] as num?)?.toDouble(),
+        customerPhone: json['customerPhone'] ?? '',
+        paymentStatus: json['paymentStatus'] ?? 'Pending',
+        paymentReference: json['paymentReference'] ?? '',
+        orderStatus: json['orderStatus'] ?? 'Pending',
+        requiresQuote: json['requiresQuote'] ?? false,
+        quoteStatus: json['quoteStatus'] ?? 'none',
+        quotedExtrasTotal: (json['quotedExtrasTotal'] as num?)?.toDouble(),
+        quotedAt: json['quotedAt'] != null ? DateTime.parse(json['quotedAt']) : null,
+      );
+}
+
+class OrderService {
+  static final OrderService _instance = OrderService._internal();
+  factory OrderService() => _instance;
+  OrderService._internal();
+
+  static const String _baseUrl =
+      'https://craftelle.fly.dev/api/v1/orders';
+
+  final List<Order> _orders = [];
+  final List<VoidCallback> _listeners = [];
+  bool _initialized = false;
+  String _customerEmail = '';
+
+  List<Order> get orders => List.unmodifiable(_orders);
+  String get customerEmail => _customerEmail;
+
+  void addListener(VoidCallback listener) => _listeners.add(listener);
+  void removeListener(VoidCallback listener) => _listeners.remove(listener);
+
+  void _notifyListeners() {
+    for (final listener in List.of(_listeners)) {
+      listener();
+    }
+  }
+
+  Future<void> init({String? customerEmail}) async {
+    if (customerEmail != null) _customerEmail = customerEmail;
+    if (_initialized && customerEmail == null) return;
+    _initialized = true;
+    await _fetchOrders();
+  }
+
+  Future<void> _fetchOrders() async {
+    try {
+      final uri = _customerEmail.isNotEmpty
+          ? Uri.parse('$_baseUrl?customerEmail=$_customerEmail')
+          : Uri.parse(_baseUrl);
+      final response = await http.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final List<dynamic> results = data['result'] ?? [];
+          _orders.clear();
+          _orders.addAll(results.map((e) => Order.fromJson(e)));
+          _notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching orders: $e');
+    }
+  }
+
+  Future<void> placeOrder(
+    List<BasketItem> basketItems,
+    List<WishListItem> wishList, {
+    String deliveryCity = '',
+    String deliveryRegion = '',
+    String deliveryAddress = '',
+    String customerPhone = '',
+    double? deliveryLatitude,
+    double? deliveryLongitude,
+    String paymentReference = '',
+    String paymentStatus = 'Pending',
+  }) async {
+    final orderItems =
+        basketItems.map((e) => OrderItem.fromBasketItem(e)).toList();
+    final totalPrice = basketItems.fold(
+        0.0, (sum, item) => sum + (item.price * item.quantity));
+
+    // Get seller email from basket items
+    final sellerEmail = basketItems.isNotEmpty ? basketItems.first.sellerEmail : '';
+
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'customerEmail': _customerEmail,
+          'sellerEmail': sellerEmail,
+          'items': orderItems.map((e) => e.toJson()).toList(),
+          'wishListItems': wishList.map((e) => {
+                'text': e.text,
+                'specifications': e.specifications,
+              }).toList(),
+          'totalPrice': totalPrice,
+          'deliveryCity': deliveryCity,
+          'deliveryRegion': deliveryRegion,
+          'deliveryAddress': deliveryAddress,
+          'deliveryLatitude': deliveryLatitude,
+          'deliveryLongitude': deliveryLongitude,
+          'customerPhone': customerPhone,
+          'paymentStatus': paymentStatus,
+          'paymentReference': paymentReference,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['result'] != null) {
+          final order = Order.fromJson(data['result']);
+          _orders.insert(0, order);
+          _notifyListeners();
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error placing order to backend: $e');
+    }
+
+    // Fallback: save locally if backend fails
+    final order = Order(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      createdAt: DateTime.now(),
+      items: orderItems,
+      wishListItems: wishList.map((e) => OrderWishListItem(
+        text: e.text,
+        specifications: e.specifications,
+      )).toList(),
+      totalPrice: totalPrice,
+      customerEmail: _customerEmail,
+      deliveryCity: deliveryCity,
+      deliveryRegion: deliveryRegion,
+      deliveryAddress: deliveryAddress,
+      deliveryLatitude: deliveryLatitude,
+      deliveryLongitude: deliveryLongitude,
+      customerPhone: customerPhone,
+      paymentStatus: paymentStatus,
+      paymentReference: paymentReference,
+    );
+    _orders.insert(0, order);
+    _notifyListeners();
+  }
+
+  Future<void> removeOrder(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/$id'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        _orders.removeWhere((e) => e.id == id);
+        _notifyListeners();
+        return;
+      }
+    } catch (e) {
+      debugPrint('Error deleting order from backend: $e');
+    }
+
+    _orders.removeWhere((e) => e.id == id);
+    _notifyListeners();
+  }
+
+  Future<bool> updateOrderStatus(String orderId, String status) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_baseUrl/$orderId/status'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'orderStatus': status}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error updating order status: $e');
+    }
+    return false;
+  }
+
+  Future<bool> submitQuote(String orderId, List<Map<String, dynamic>> quotedItems) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_baseUrl/$orderId/quote'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'quotedWishListItems': quotedItems}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      debugPrint('Error submitting quote: $e');
+    }
+    return false;
+  }
+
+  Future<bool> payQuote(String orderId, String paymentReference) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$_baseUrl/$orderId/pay-quote'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'paymentReference': paymentReference}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      debugPrint('Error paying quote: $e');
+    }
+    return false;
+  }
+
+  Future<List<Order>> fetchSellerOrders(String sellerEmail) async {
+    try {
+      final uri = Uri.parse('$_baseUrl?sellerEmail=$sellerEmail');
+      final response = await http.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final List<dynamic> results = data['result'] ?? [];
+          return results.map((e) => Order.fromJson(e)).toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching seller orders: $e');
+    }
+    return [];
+  }
+}

@@ -1,0 +1,316 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Res,
+  Put,
+  Query,
+  HttpException,
+} from '@nestjs/common';
+import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto, UpdateProfileDto } from './dto/update-user.dto';
+import { Response } from 'express';
+// import { Roles } from 'src/shared/middleware/role.decorators';
+import { userTypes } from 'src/shared/schema/users';
+
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Post()
+  async create(@Body() createUserDto: CreateUserDto) {
+    try {
+      return await this.usersService.create(createUserDto);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('/login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() loginUser: { email: string; password: string; type?: string },
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    try {
+      const loginRes = await this.usersService.login(
+        loginUser.email,
+        loginUser.password,
+        loginUser.type,
+      );
+      
+      if (loginRes.success) {
+        response.cookie('_digi_auth_token', loginRes.result?.token, {
+          httpOnly: true,
+        });
+        delete loginRes.result?.token;
+      }
+      
+      return loginRes;
+    } catch (error) {
+      // Handle specific error cases
+      if (error.message.includes('deactivated')) {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message,
+          },
+          HttpStatus.FORBIDDEN, // 403 for account deactivated
+        );
+      } else if (error.message.includes('locked')) {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message,
+          },
+          HttpStatus.TOO_MANY_REQUESTS, // 429 for account locked
+        );
+      } else if (error.message.includes('verify your email')) {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message,
+          },
+          HttpStatus.FORBIDDEN, // 403 for unverified email
+        );
+      } else if (error.message.includes('not registered as')) {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message,
+          },
+          HttpStatus.FORBIDDEN, // 403 for role mismatch
+        );
+      } else if (error.message.includes('Invalid email or password') || error.message.includes('attempts remaining')) {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message,
+          },
+          HttpStatus.UNAUTHORIZED, // 401 for wrong credentials
+        );
+      } else {
+        throw new HttpException(
+          {
+            success: false,
+            message: error.message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+  }
+
+  @Get('/verify-email/:otp/:email')
+  async verifyEmail(@Param('otp') otp: string, @Param('email') email: string) {
+    try {
+      return await this.usersService.verifyEmail(otp, email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('send-otp-email/:email')
+  async sendOtpEmail(@Param('email') email: string) {
+    try {
+      return await this.usersService.sendOtpEmail(email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Put('/logout')
+  async logout(@Res() res: Response) {
+    res.clearCookie('_digi_auth_token');
+    return res.status(HttpStatus.OK).json({
+      success: true,
+      message: 'Logout successfully',
+    });
+  }
+
+  @Get('forgot-password/:email')
+  async forgotPassword(@Param('email') email: string) {
+    try {
+      return await this.usersService.forgotPassword(email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get()
+  async findAll(@Query('type') type: string) {
+    try {
+      return await this.usersService.findAll(type);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('/profile/:email')
+  async getUserByEmail(@Param('email') email: string) {
+    try {
+      return await this.usersService.getUserByEmail(email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Patch('/update-profile')
+  async updateProfile(@Body() updateProfileDto: UpdateProfileDto) {
+    try {
+      return await this.usersService.updateProfile(
+        updateProfileDto.email,
+        {
+          name: updateProfileDto.name,
+          username: updateProfileDto.username,
+          phone: updateProfileDto.phone,
+          savedAddress: updateProfileDto.savedAddress,
+          savedLatitude: updateProfileDto.savedLatitude,
+          savedLongitude: updateProfileDto.savedLongitude,
+        },
+      );
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Patch('/update-password-or-name')
+  async update(@Body() updateUserDto: UpdateUserDto) {
+    try {
+      return await this.usersService.updatePasswordOrName(updateUserDto);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Put('/reactivate-account/:email')
+  // @Roles(userTypes.ADMIN)
+  async reactivateAccount(
+    @Param('email') email: string,
+    @Body() body: { adminEmail: string }
+  ) {
+    try {
+      return await this.usersService.reactivateAccount(email, body.adminEmail);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Put('/admin/fix-duplicate-key-index')
+  async fixDuplicateKeyIndex() {
+    try {
+      return await this.usersService.fixDuplicateKeyIndex();
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Delete('/admin/clear-all-users')
+  async clearAllUsers() {
+    try {
+      return await this.usersService.clearAllUsers();
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Patch('/fcm-token')
+  async updateFcmToken(@Body() body: { email: string; fcmToken: string }) {
+    try {
+      return await this.usersService.updateFcmToken(body.email, body.fcmToken);
+    } catch (error) {
+      throw new HttpException(
+        { success: false, message: error.message },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Delete('delete-account/:email')
+  async deleteAccount(@Param('email') email: string) {
+    try {
+      return await this.usersService.deleteAccountByEmail(email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+}

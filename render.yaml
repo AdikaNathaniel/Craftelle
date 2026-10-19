@@ -1,0 +1,86 @@
+# Render Blueprint for the Craftelle backend (free tier)
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Deploy: Render Dashboard -> New -> Blueprint -> select this repo.
+# Variables marked `sync: false` are secrets: Render prompts for them on first deploy.
+services:
+  - type: web
+    name: craftelle-backend
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    rootDir: craftelle_backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - craftelle_backend/**
+    envVars:
+      # Render injects PORT automatically (10000); the app reads process.env.PORT
+      - key: NODE_ENV
+        value: production
+      - key: APP_PREFIX
+        value: api/v1
+      - key: FRONTEND_URL
+        sync: false
+
+      # Database / auth
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_SECRET_TOKEN
+        sync: false
+
+      # Redis (Upstash)
+      - key: REDIS_HOST
+        value: inspired-roughy-17170.upstash.io
+      - key: REDIS_PORT
+        value: "6379"
+      - key: REDIS_TLS
+        value: "true"
+      - key: REDIS_PASSWORD
+        sync: false
+
+      # Email
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: mawuloloadika359@gmail.com
+      - key: SMTP_PASS
+        sync: false
+
+      # Payments
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+
+      # SMS
+      - key: ARKESEL_API_KEY
+        sync: false
+      - key: ARKESEL_SENDER_ID
+        sync: false
+
+      # AI / push notifications
+      - key: GITHUB_API_KEY
+        sync: false
+      - key: AI_API_URL
+        value: https://models.inference.ai.azure.com/chat/completions
+      - key: HUGGING_FACE_API_KEY
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
+
+      # Optional services (off for free tier)
+      - key: KAFKA_REQUIRED
+        value: "false"
+      - key: ELASTICSEARCH_REQUIRED
+        value: "false"
+      - key: REDIS_REQUIRED
+        value: "false"

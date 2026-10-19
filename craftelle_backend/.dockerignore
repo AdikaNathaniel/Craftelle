@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+dist
+npm-debug.log
+.env
+.env.*
+.git
+.github
+fly.toml
+uploads
+coverage
