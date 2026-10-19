@@ -118,7 +118,7 @@ export class EmailService {
     `;
 
     const mailOptions = {
-      from: `"Craftelle" <${process.env.SMTP_USER}>`,
+      from: `"Craftelle" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
       to: email,
       subject: 'Craftelle - Email Verification Code',
       html: this.craftelleEmailTemplate(bodyContent),
@@ -166,7 +166,7 @@ export class EmailService {
     `;
 
     const mailOptions = {
-      from: `"Craftelle" <${process.env.SMTP_USER}>`,
+      from: `"Craftelle" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
       to: email,
       subject: 'Craftelle - Password Reset',
       html: this.craftelleEmailTemplate(bodyContent),
@@ -265,7 +265,7 @@ export class EmailService {
       `;
 
       const mailOptions = {
-        from: `"Craftelle" <${process.env.SMTP_USER}>`,
+        from: `"Craftelle" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: order.customerEmail,
         subject: 'Craftelle - Order Receipt',
         html: this.craftelleEmailTemplate(bodyContent),
@@ -369,7 +369,7 @@ export class EmailService {
       `;
 
       const mailOptions = {
-        from: `"Craftelle" <${process.env.SMTP_USER}>`,
+        from: `"Craftelle" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: sellerEmail,
         subject: 'Craftelle - New Order Requires Pricing',
         html: this.craftelleEmailTemplate(bodyContent),
@@ -448,7 +448,7 @@ export class EmailService {
       `;
 
       const mailOptions = {
-        from: `"Craftelle" <${process.env.SMTP_USER}>`,
+        from: `"Craftelle" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: order.customerEmail,
         subject: 'Craftelle - Your Quote is Ready',
         html: this.craftelleEmailTemplate(bodyContent),
@@ -552,7 +552,7 @@ export class EmailService {
       if (order.sellerEmail) recipients.push(order.sellerEmail);
 
       const mailOptions = {
-        from: `"Craftelle" <${process.env.SMTP_USER}>`,
+        from: `"Craftelle" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: recipients.join(', '),
         subject: 'Craftelle - Payment Confirmed - Final Invoice',
         html: this.craftelleEmailTemplate(bodyContent),
