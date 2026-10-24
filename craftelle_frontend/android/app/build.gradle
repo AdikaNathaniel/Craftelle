@@ -74,6 +74,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    packaging {
+        jniLibs {
+            // Only needed by multi-process DataStore, which shared_preferences doesn't use.
+            // Prebuilt with an old NDK, so Play flags it for 16 KB page size devices.
+            excludes += '**/libdatastore_shared_counter.so'
+        }
+    }
 }
 
 flutter {
